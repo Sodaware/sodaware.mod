@@ -1,0 +1,161 @@
+' ------------------------------------------------------------
+' -- sodaware.blitzmax_array
+' -- 
+' -- Functions for working with arrays and linked lists.
+' ------------------------------------------------------------
+
+Module sodaware.blitzmax_array
+
+SuperStrict
+
+Import brl.linkedlist
+
+' ------------------------------------------------------------
+' -- Array Functions
+' ------------------------------------------------------------
+
+''' <summary>Remove the first element from an array and return it.</summary>
+''' <param name="arr">The array to operate on</param>
+''' <return>The first element of the array.</return>
+Function array_pull:Object(arr:Object[] Var)
+	
+	' Return null if the array is empty or invalid.
+	If arr = Null Or arr.Length = 0 Then Return Null
+
+	' Get the first element so it can be returned.
+	Local element:Object = arr[0]
+
+	' Create a replacement array with the first element missing
+	Local copy:Object[arr.Length - 1]	
+	For Local i:Int = 0 To arr.Length - 2
+		copy[i] = arr[i + 1]
+	Next
+	arr = copy
+
+	Return element
+
+End Function
+
+''' <summary>Remove the last element from an array and return it.</summary>
+''' <param name="arr">The array to operate on</param>
+''' <return>The last element of the array.</return>
+Function array_pop:Object(arr:Object[] Var)
+	
+	' Return null if the array is empty or invalid.
+	If arr = Null Or arr.Length = 0 Then Return Null
+
+	' Get the last element so it can be returned.
+	Local element:Object = arr[arr.Length - 1]
+
+	' Create a replacement array with the last element missing
+	Local copy:Object[arr.Length - 1]
+	For Local i:Int = 0 To arr.Length - 2
+		copy[i] = arr[i]
+	Next
+	arr = copy
+
+	Return element
+
+End Function
+
+''' <summary>Merge two arrays together into a new array.</summary>
+''' <param name="arr1">The first array to merge.</param>
+''' <param name="arr2">The second array to merge.</param>
+''' <return>An array of containing all elements from both arrays.</return>
+Function array_merge:Object[](arr1:Object[], arr2:Object[])
+	
+	Local result:Object[arr1.Length + arr2.Length]
+	Local i:Int
+	
+	For i = 0 To arr1.Length - 1
+		result[i] = arr1[i]
+	Next
+	
+	For i = 0 To arr2.Length - 1
+		result[i + arr1.Length] = arr2[i]
+	Next
+	
+	Return result
+	
+End Function
+
+''' <summary>Add an element to the end of an array.</summary>
+''' <param name="arr">The array to modify.</param>
+''' <param name="obj">The element to add.</param>
+''' <return>A new array containing all elements of arr with obj added to the end.</return>
+Function array_append:Object[](arr:Object[], obj:Object)
+	Local result:Object[arr.Length + 1]
+	For Local i:Int = 0 To arr.Length - 1
+		result[i] = arr[i]
+	Next
+	result[arr.Length] = obj
+	Return result
+End Function
+
+''' <summary>Filter the contents of an array using a callback function.</summary>
+''' <param name="inputArray">The array to filter.</param>
+''' <param name="fn">Callback function that should take a single element. If the element can be included in the result, the function should return true.</param>
+''' <return>A new array containing filtered elements from inputArray</return>
+Function array_filter:Object[](inputArray:Object[], fn:Byte(o:Object))
+	Local l:TList = New TList
+	For Local obj:Object = EachIn inputArray
+		If fn(obj) = True Then l.AddLast(obj)
+	Next
+	Return l.ToArray()
+End Function
+
+
+Function array_contains:Int(arr:Object[], obj:Object)
+	
+	For Local arrayObject:Object = EachIn arr
+		If arrayObject = obj Then Return True
+	Next
+	
+	Return False
+	
+End Function
+
+
+' ------------------------------------------------------------
+' -- Linked List Functions
+' ------------------------------------------------------------
+
+''' <summary>Filter the contents of a linked list using a callback function.</summary>
+''' <param name="inputList">The list to filter.</param>
+''' <param name="fn">Callback function that should take a single element. If the element can be included in the result, the function should return true.</param>
+''' <return>A new array containing filtered elements from inputArray</return>
+Function tlist_filter:TList(inputList:TList, fn:Byte(o:Object))
+	Return tlist_remove_if_not(inputList, fn)
+End Function
+
+''' <summary>Remove elements from a linked list if they pass the test in fn.</summary>
+''' <param name="inputList">The list to filter.</param>
+''' <param name="fn">Callback function that should take a single element.</param>
+''' <return>A new array containing filtered elements from inputArray</return>
+Function tlist_remove_if:TList(inputList:TList, fn:Byte(o:Object))
+	
+	Local filteredList:TList = New TList
+	
+	For Local obj:Object = EachIn inputList
+		If fn(obj) = False Then filteredList.AddLast(obj)
+	Next
+	
+	Return filteredList
+	
+End Function
+
+''' <summary>Remove elements from a linked list if they do not pass the test in fn.</summary>
+''' <param name="inputList">The list to filter.</param>
+''' <param name="fn">Callback function that should take a single element.</param>
+''' <return>A new array containing filtered elements from inputArray</return>
+Function tlist_remove_if_not:TList(inputList:TList, fn:Byte(o:Object))
+	
+	Local filteredList:TList = New TList
+	
+	For Local obj:Object = EachIn inputList
+		If fn(obj) = True Then filteredList.AddLast(obj)
+	Next
+	
+	Return filteredList
+	
+End Function
