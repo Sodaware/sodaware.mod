@@ -104,15 +104,15 @@ Function array_filter:Object[](inputArray:Object[], fn:Byte(o:Object))
 	Return l.ToArray()
 End Function
 
-
+''' <summary>Check if an array contains a specific value. Will be slow for large arrays.</summary>
+''' <param name="arr">The array to scan.</param>
+''' <param name="obj">The object to search for.</param>
+''' <return>True if obj was found, false if not.</return>
 Function array_contains:Int(arr:Object[], obj:Object)
-	
 	For Local arrayObject:Object = EachIn arr
 		If arrayObject = obj Then Return True
 	Next
-	
 	Return False
-	
 End Function
 
 
