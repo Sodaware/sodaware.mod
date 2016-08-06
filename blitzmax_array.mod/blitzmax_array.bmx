@@ -4,55 +4,61 @@
 ' -- Functions for working with arrays and linked lists.
 ' ------------------------------------------------------------
 
-Module sodaware.blitzmax_array
 
 SuperStrict
 
+Module sodaware.blitzmax_array
 Import brl.linkedlist
 
 ' ------------------------------------------------------------
 ' -- Array Functions
 ' ------------------------------------------------------------
 
-''' <summary>Remove the first element from an array and return it.</summary>
-''' <param name="arr">The array to operate on</param>
+''' <summary>
+''' Remove the first element from an array and return it. This
+''' will modify the contents of the passed in array.
+''' </summary>
+''' <param name="inputArray">The array to operate on.</param>
 ''' <return>The first element of the array.</return>
-Function array_pull:Object(arr:Object[] Var)
+Function array_pull:Object(inputArray:Object[] Var)
 	
-	' Return null if the array is empty or invalid.
-	If arr = Null Or arr.Length = 0 Then Return Null
+	' Return null if the array is empty.
+	If inputArray.Length = 0 Then Return Null
 
 	' Get the first element so it can be returned.
-	Local element:Object = arr[0]
+	Local element:Object = inputArray[0]
 
 	' Create a replacement array with the first element missing
-	Local copy:Object[arr.Length - 1]	
-	For Local i:Int = 0 To arr.Length - 2
-		copy[i] = arr[i + 1]
+	Local copy:Object[inputArray.Length - 1]
+	For Local i:Int = 0 To inputArray.Length - 2
+		copy[i] = inputArray[i + 1]
 	Next
-	arr = copy
+	inputArray = copy
 
 	Return element
 
 End Function
 
-''' <summary>Remove the last element from an array and return it.</summary>
-''' <param name="arr">The array to operate on</param>
+''' <summary>
+''' Remove the last element from an array and return it. This
+''' will modify the contents of the passed in array.
+''' </summary>
+''' <param name="inputArray">The array to operate on.</param>
 ''' <return>The last element of the array.</return>
-Function array_pop:Object(arr:Object[] Var)
+Function array_pop:Object(inputArray:Object[] Var)
 	
 	' Return null if the array is empty or invalid.
-	If arr = Null Or arr.Length = 0 Then Return Null
+	If inputArray.Length = 0 Then Return Null
 
 	' Get the last element so it can be returned.
-	Local element:Object = arr[arr.Length - 1]
+	Local element:Object = inputArray[inputArray.Length - 1]
 
 	' Create a replacement array with the last element missing
-	Local copy:Object[arr.Length - 1]
-	For Local i:Int = 0 To arr.Length - 2
-		copy[i] = arr[i]
+	Local copy:Object[inputArray.Length - 1]
+	For Local i:Int = 0 To inputArray.Length - 2
+		copy[i] = inputArray[i]
 	Next
-	arr = copy
+	inputArray = copy
 
 	Return element
 
@@ -63,7 +69,12 @@ End Function
 ''' <param name="arr2">The second array to merge.</param>
 ''' <return>An array of containing all elements from both arrays.</return>
 Function array_merge:Object[](arr1:Object[], arr2:Object[])
+
+	' If one array is empty, no need to merge.
+	If arr1.Length = 0 Then Return arr2
+	If arr2.Length = 0 Then Return arr1
 	
+	' Create the new array.
 	Local result:Object[arr1.Length + arr2.Length]
 	Local i:Int
 	
