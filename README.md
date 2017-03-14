@@ -26,3 +26,5 @@ redistributed under LGPL, but applications that use the library don't have to
 be.
 
 [Summary from tldrlegal.com](https://tldrlegal.com/license/gnu-lesser-general-public-license-v3-(lgpl-3))
+
+See LICENSE for full licence information.
