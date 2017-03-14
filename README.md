@@ -8,6 +8,7 @@ A bunch of general purpose modules for BlitzMax.
 * blitzmax_ascii -- Handy constants for working with ASCII values
 * blitzmax_array.mod -- Merge and filter commands for arrays and linked lists
 * stringtable -- Strongly-typed TMap for working with strings
+* objectbag -- Fast storage of objects in a flexible array
 
 
 # Installation Guide
