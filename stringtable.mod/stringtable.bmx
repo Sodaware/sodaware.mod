@@ -2,6 +2,23 @@
 ' -- sodaware.stringtable
 ' -- 
 ' -- Works in a similar way to a TMap, but is strongly typed for strings.
+' --
+' -- This file is part of sodaware.mod (https://www.sodaware.net/sodaware.mod/)
+' -- Copyright (c) 2008-2017 Phil Newton
+' --
+' -- This library is free software; you can redistribute it and/or modify
+' -- it under the terms of the GNU Lesser General Public License as
+' -- published by the Free Software Foundation; either version 3 of the
+' -- License, or (at your option) any later version.
+' --
+' -- This library is distributed in the hope that it will be useful,
+' -- but WITHOUT ANY WARRANTY; without even the implied warranty of
+' -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+' -- GNU Lesser General Public License for more details.
+' --
+' -- You should have received a copy of the GNU Lesser General Public
+' -- License along with this library (see the file LICENSE for more
+' -- details); If not, see <http://www.gnu.org/licenses/>.
 ' ------------------------------------------------------------------------------
 
 
@@ -9,45 +26,4 @@ SuperStrict
 
 Module sodaware.stringtable
 
-Import brl.map
-
-''' <summary>
-''' Get and set string values. Works in a similar way to a TMap, 
-''' but is strongly typed for strings.
-''' </summary>
-Type StringTable
-	
-	Field _strings:TMap
-	
-	
-	' ------------------------------------------------------------
-	' -- Getting and Setting
-	' ------------------------------------------------------------
-	
-	''' <summary>Get the value for key in the string table.</summary>
-	''' <param name="key">The key to search for.</param>
-	''' <return>The value found, or an empty string if not found.</return>
-	Method get:String(key:String)
-		Return String(Self._strings.ValueForKey(key))
-	End Method
-	
-	''' <summary>Set the value for key in the string table.</summary>
-	''' <param name="key">The key to set.</param>
-	''' <param name="value">The value to set.</param>
-	''' <return>The stringtable object.</return>
-	Method set:StringTable(key:String, name:String)
-		Self._strings.Insert(key, name)
-		Return Self
-	End Method
-
-	
-	' ------------------------------------------------------------
-	' -- Creation / Destruction
-	' ------------------------------------------------------------
-	
-	Method New()
-		Self._strings = New TMap
-	End Method
-	
-End Type
-
+Import "src/string_table.bmx"
