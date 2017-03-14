@@ -2,9 +2,13 @@
 
 A bunch of general purpose modules for BlitzMax.
 
+
 # Module Overview
 
+* blitzmax_ascii -- Handy constants for working with ASCII values
 * blitzmax_array.mod -- Merge and filter commands for arrays and linked lists
+* stringtable -- Strongly-typed TMap for working with strings
+
 
 # Installation Guide
 
@@ -14,6 +18,7 @@ directory.
 
 It's highly recommended to install all modules as some are dependent on
 others.
+
 
 # Licence
 
