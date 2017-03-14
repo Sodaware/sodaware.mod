@@ -133,8 +133,11 @@ End Function
 
 ''' <summary>Filter the contents of a linked list using a callback function.</summary>
 ''' <param name="inputList">The list to filter.</param>
-''' <param name="fn">Callback function that should take a single element. If the element can be included in the result, the function should return true.</param>
-''' <return>A new array containing filtered elements from inputArray</return>
+''' <param name="fn">
+''' Callback function that takes a single element from the list as an argument. If
+''' the element can be included in the result, the function must return true.
+''' </param>
+''' <return>A new TList containing filtered elements from inputList.</return>
 Function tlist_filter:TList(inputList:TList, fn:Byte(o:Object))
 	Return tlist_remove_if_not(inputList, fn)
 End Function
@@ -142,7 +145,7 @@ End Function
 ''' <summary>Remove elements from a linked list if they pass the test in fn.</summary>
 ''' <param name="inputList">The list to filter.</param>
 ''' <param name="fn">Callback function that should take a single element.</param>
-''' <return>A new array containing filtered elements from inputArray</return>
+''' <return>A new TList containing filtered elements from inputList.</return>
 Function tlist_remove_if:TList(inputList:TList, fn:Byte(o:Object))
 	
 	Local filteredList:TList = New TList
@@ -158,7 +161,7 @@ End Function
 ''' <summary>Remove elements from a linked list if they do not pass the test in fn.</summary>
 ''' <param name="inputList">The list to filter.</param>
 ''' <param name="fn">Callback function that should take a single element.</param>
-''' <return>A new array containing filtered elements from inputArray</return>
+''' <return>A new TList containing filtered elements from inputList.</return>
 Function tlist_remove_if_not:TList(inputList:TList, fn:Byte(o:Object))
 	
 	Local filteredList:TList = New TList
