@@ -30,15 +30,16 @@ Include "command_line_helpers.bmx"
 Type CommandLineOptions
 	
 	' -- Internal fields
-	Field m_Initialised:Int     = False
-	Field m_OptionLookup:TMap   = New TMap      ''' Cache of field Name -> optionattribute
+	Field _isInitialised:Byte   = False
+	Field _optionLookup:TMap    = New TMap      ''' Cache of field Name -> optionattribute
 
 	' -- Public stuff
 	Field Arguments:TList       = New TList		''' List of arguments	
 
-	' Parser options
+	' -- Parser options
 	Field AllowForwardSlash:Int = True
-
+	
+	
 	' ------------------------------------------------------------
 	' -- Creation and destruction
 	' ------------------------------------------------------------
@@ -47,12 +48,12 @@ Type CommandLineOptions
 	''' <summary>Initialises the command line.</summary>
 	''' <param name="args">String array of arguments to parse.</param>
 	''' <remarks>Normally AppArgs will be passed to this method.</remarks>
-	Method Init(args:String[])
+	Method init(args:String[])
 	
-		' Check for previous initialisation, and cleanup if required
-		If Self.m_Initialised Then 
+		' Clear arguments/options if previously initialized.
+		If Self._isInitialised Then 
 			Self.Arguments.Clear()
-			Self.m_OptionLookup.Clear()
+			Self._optionLookup.Clear()
 		EndIf 
 		
 		' TODO: Create our cache of options ?
@@ -93,7 +94,7 @@ Type CommandLineOptions
 			optionPos:+ 1
 		Wend
 		
-		Self.m_Initialised	= True
+		Self._isInitialised	= True
 		
 	End Method
 	
@@ -107,22 +108,21 @@ Type CommandLineOptions
 	''' <param name="columnWidth">The number of characters to wrap at.</summary>
 	''' <param name="useColours">If true, will add coluor codes for use with console_color module</param>
 	''' <returns>The formatted string.</returns>
-	Method CreateHelp:String(columnWidth:Int = 80, useColours:Int = False)
+	Method createHelp:String(columnWidth:Int = 80, useColours:Byte = False)
+
+		' TODO: Find the longest longname, + 2 for indent
+		' TODO: Wrap text to specified distance
+		' TODO: Add colours
 		
-	'	throw "Console_CommandLine.CreateHelp -- Not yet implemented"
-		
-		' Get a list of all commands
-		
-		
-		' Find the longest meta
+		' Find the longest name (for padding).
 		Local longestName:String = Self._findLongestName()
 		Local helpText:String    = ""
 		Local wrapWidth:Int 	 = 12 + longestName.Length
 		
-		
-		' Display each field
+		' Display each field.
 		Local optionsObject:TTypeId = TTypeId.ForObject(Self)			
-		For Local currentOption:TField = EachIn optionsObject.enumfields()
+		For Local currentOption:TField = EachIn optionsObject.EnumFields()
+			
 			Local optionMeta:Tmap = CommandLineHelpers.ParseMetaString(currentOption.MetaData())
 			
 			' Skip fields with no description
@@ -139,10 +139,6 @@ Type CommandLineOptions
 		Next
 			
 		Return helpText	
-	'	Print helpText
-		' TODO: Find the longest longname, + 2 for indent
-		' TODO: Wrap text to specified distance
-		' TODO: Add colours
 		
 	End Method
 	
@@ -153,40 +149,40 @@ Type CommandLineOptions
 	
 	''' <summary>Returns true if command line is initialized, false if not.</summary>
 	''' <returns>True if initialised, false if not.</returns>
-	Method IsInitialized:Int()
-		Return Self.m_Initialised
+	Method isInitialized:Byte()
+		Return Self._isInitialised
 	End Method
 
 	''' <summary>Does this commandline object have any arguments.</summary>
 	''' <returns>True if has arguments, false if not.</returns>
-	Method HasArguments:Int()
+	Method hasArguments:Byte()
 		Return (Self.Arguments.Count() > 0)
 	End Method
 		
 	''' <summary>Gets the number of arguments.</summary>
 	''' <returns>Number of arguments.</returns>
-	Method CountArguments:Int()
+	Method countArguments:Int()
 		Return Self.Arguments.Count()
 	End Method	
 		
 	''' <summary>Gets an argument from the command line by its position.</summary>
 	''' <param name="argPos">The offset of the argument to get.</param>
 	''' <returns>The argument found, or null if out of range.</returns>
-	Method GetArgument:String(argPos:Int)
+	Method getArgument:String(argPos:Int)
 		If argPos < 0 Or argPos >= Self.Arguments.Count() Then Return Null
 		Return String(Self.Arguments.ValueAtIndex(argPos))
 	End Method
 	
 	
 	' ------------------------------------------------------------
-	' -- Private methods
+	' -- Internal methods
 	' ------------------------------------------------------------
 	
 	''' <summary>Sets the value of an option.</summary>
 	''' <param name="optionName">The name of the option to set.</param>
 	''' <param name="optionValue">The value of the option to set.</param>
 	''' <returns>True if option set correctly, false if not.</returns>
-	Method _setOption:Int(optionName:String, optionValue:Object)
+	Method _setOption:Byte(optionName:String, optionValue:Object)
 		
 		' Check if option is an array
 		If optionName.Contains(":") Then Return Self._setOptionMap(optionName, optionValue)
@@ -203,7 +199,7 @@ Type CommandLineOptions
 	''' <param name="optionName">The name of the option to set (option:key).</param>
 	''' <param name="optionValue">The value of the option to set.</param>
 	''' <returns>True if option set correctly, false if not.</returns>
-	Method _setOptionMap:Int(optionName:String, optionValue:Object)
+	Method _setOptionMap:Byte(optionName:String, optionValue:Object)
 		
 		Local optionFamily:String	= Left(optionName, optionName.Find(":"))
 		Local optionKey:String		= Right(optionName, optionName.Length - optionName.Find(":") - 1)
@@ -219,7 +215,7 @@ Type CommandLineOptions
 		
 	End Method
 	
-	''' <summary>Gets a BlitzMax field object, by searching for names and LongName/ShortName metadata.</summary>
+	''' <summary>Gets a BlitzMax field object by searching for names and LongName/ShortName metadata.</summary>
 	''' <param name="optionName">The name of the option to find.</param>
 	''' <returns>Reflection field, or null if not found.</returns>
 	Method _findOptionField:TField(optionName:String)
@@ -234,9 +230,6 @@ Type CommandLineOptions
 			Else
 				' Not found - was it in the meta data?
 				Local options:TMap	= CommandLineHelpers.ParseMetaString(fld.MetaData())
-				
-			'	DebugLog String(options.ValueForKey("LongName")).ToLower()
-			'	DebugLog String(options.ValueForKey("ShortName")).ToLower()
 				
 				' Long option
 				If Trim(optionName.ToLower()) = Trim(String(options.ValueForKey("LongName")).ToLower()) Then
