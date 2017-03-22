@@ -168,3 +168,5 @@ Type CommandLineHelpers
 	End Function
 
 End Type
+
+Public
