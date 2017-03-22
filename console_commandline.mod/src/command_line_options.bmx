@@ -105,7 +105,7 @@ Type CommandLineOptions
 	
 	''' <summary>Creates a formatted help string for the command line options.</summary>
 	''' <remarks>Will exclude any field that does not have a "Description" meta field.</remarks>
-	''' <param name="columnWidth">The number of characters to wrap at.</summary>
+	''' <param name="columnWidth">The number of characters to wrap at.</param>
 	''' <param name="useColours">If true, will add coluor codes for use with console_color module</param>
 	''' <returns>The formatted string.</returns>
 	Method createHelp:String(columnWidth:Int = 80, useColours:Byte = False)
