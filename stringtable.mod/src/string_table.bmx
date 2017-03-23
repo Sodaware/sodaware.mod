@@ -40,8 +40,8 @@ Type StringTable
 	''' <param name="key">The key to set.</param>
 	''' <param name="value">The value to set.</param>
 	''' <return>The stringtable object.</return>
-	Method set:StringTable(key:String, name:String)
-		Self._strings.Insert(key, name)
+	Method set:StringTable(key:String, value:String)
+		Self._strings.Insert(key, value)
 		Return Self
 	End Method
 
