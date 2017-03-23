@@ -66,10 +66,11 @@ Private
 ' Internal matching function
 Function match:Int(pattern:String, patternPos:Int, fileName:String, stringPos:Int, flags:Int = 0)
 
-	' Check inputs
+	' Empty filename and pattern matches, no need to check.
 	If fileName = "" And pattern = "" Then Return True
-	If fileName = "" Then Return False
-	If pattern  = "" Then Return False
+	
+	' Empty filename with a pattern (or vice-versa) is a fail.
+	If fileName = "" Or pattern = "" Then Return False
 	
 	' Begin
 	Local stringChar:String	= Mid(fileName, stringPos, 1)
@@ -77,6 +78,7 @@ Function match:Int(pattern:String, patternPos:Int, fileName:String, stringPos:In
 	
 	Repeat
 		
+		' Get the next character in the pattern.
 		patternPos	= patternPos + 1
 		patternChar	= Mid(pattern, patternPos, 1)
 		
@@ -92,7 +94,7 @@ Function match:Int(pattern:String, patternPos:Int, fileName:String, stringPos:In
 			Case "\"	' Escape character
 				If Not(flags And FNM_NO_ESCAPE) Then 
 					patternPos = patternPos + 1
-					patternChar$ = Mid(pattern, patternPos, 1)
+					patternChar = Mid(pattern, patternPos, 1)
 				EndIf
 				
 				If patternChar <> stringChar Then Return False
@@ -129,7 +131,8 @@ Function match:Int(pattern:String, patternPos:Int, fileName:String, stringPos:In
 			
 		End Select
 		
-		stringPos  = stringPos + 1  ; stringChar$ = Mid(fileName, stringPos, 1)
+		stringPos  = stringPos + 1
+		stringChar = Mid(fileName, stringPos, 1)
 		
 		' If we're at the end of the filename, but not the pattern, then it didn't match
 		If stringPos > fileName.Length And patternPos < pattern.Length Then	Return False
