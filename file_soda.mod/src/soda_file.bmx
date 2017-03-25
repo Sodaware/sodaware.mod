@@ -33,35 +33,42 @@ Type SodaFile
 	
 	Global CHAR_LOOKUP:String[256]
 	
-	Field _pos:Int			= 0
-	Field _buffer:String	= ""
-	Field m_Groups:TList 	= New TList		'''< Internal list of of groups in this file
-	Field m_QueryCache:TMAP	= New TMAP		'''< Internal cache of query results
+	Field _pos:Int          = 0
+	Field _buffer:String    = ""
+	Field _groups:TList     = New TList		'''< Internal list of of groups in this file
+	Field _queryCache:TMAP  = New TMAP		'''< Internal cache of query results
 	
-	' TODO: Replace m_Groups with an objectbag?
+	' TODO: Replace _groups with an objectbag?
 	
 	' ------------------------------------------------------------
 	' -- Helper Functions
 	' ------------------------------------------------------------
 	
+	''' <summary>Get all top-level groups in the SodaFile document.</summary>
+	''' <returns>TList of SodaGroup objects.</returns>
 	Method getGroups:TList()
-		Return Self.m_Groups
+		Return Self._groups
 	End Method
 	
+	
+	' ------------------------------------------------------------
+	' -- Query Helpers
+	' ------------------------------------------------------------
+	
 	''' <summary>Get the boolean value of a query</summary>
-	Method QueryBool:Int(qry:String)
+	Method queryBool:Int(qry:String)
 		Local val:String = String(Self.Query(qry))
 		If Int(val) >= 1 Then Return True
 		Return (Lower(val) = "true") 
 	End Method
 	
 	''' <summary>Get the integer value of a query.</summary>
-	Method QueryInt:Int(qry:String)
+	Method queryInt:Int(qry:String)
 		Local val:String = String(Self.Query(qry))
 		Return Int(val.ToString())
 	End Method
 
-	Method QueryFloat:Float(qry:String)
+	Method queryFloat:Float(qry:String)
 		Local val:String = String(Self.Query(qry))
 		Return Float(val.ToString())
 	End Method
@@ -80,8 +87,8 @@ Type SodaFile
 		
 		' Check inputs & cache
 		If qry = "" Then Return Null
-		If Self.m_QueryCache.ValueForKey(qry) <> Null Then 
-			Return Self.m_QueryCache.ValueForKey(qry)
+		If Self._queryCache.ValueForKey(qry) <> Null Then 
+			Return Self._queryCache.ValueForKey(qry)
 		EndIf
 		
 		' Split into chunks
@@ -93,14 +100,9 @@ Type SodaFile
 		
 		' Found, so store in cache
 		Local value:Object	= rootGroup.Query(SodaFile_Util.AssembleQuery(identifiers))
-		Self.m_QueryCache.Insert(qry, value)
+		Self._queryCache.Insert(qry, value)
 		Return value
 		
-	End Method
-	
-	''' <summary>Resets the internal cache.</summary>
-	Method resetCache()
-		Self.m_QueryCache.Clear()
 	End Method
 	
 	' TODO: Can this be made better?
@@ -125,7 +127,7 @@ Type SodaFile
 			Next
 			
 			' Evaluate every node
-			For Local group:SodaGroup = EachIn Self.m_Groups
+			For Local group:SodaGroup = EachIn Self._groups
 				
 				Local validKey:Int = True
 				For Local key:String = EachIn conditions.Keys()
@@ -152,9 +154,9 @@ Type SodaFile
 		
 		Local currentOffset:Int = 0
 	
-		For Local group:SodaGroup = EachIn Self.m_Groups
+		For Local group:SodaGroup = EachIn Self._groups
 			If group.Identifier = name Then 
-				If group.m_IsArray Then
+				If group._isArray Then
 					If offset > -1 And currentOffset = offset Then 
 						Return group
 					Else
@@ -207,7 +209,7 @@ Type SodaFile
 			If streamType = Null Then Throw "Unable to load SodaFile: " + url.toString()
 			
 			Select streamType.Name().ToLower()
-				Case "string"	;	 this.LoadFromString(String(url)) ; If this.m_Groups.Count() = 0 Then this = Null
+				Case "string"	;	 this.LoadFromString(String(url)) ; If this._groups.Count() = 0 Then this = Null
 			End Select
 		
 		EndIf
@@ -281,20 +283,7 @@ Type SodaFile
 	' ------------------------------------------------------------
 	
 	Method addGroup(group:SodaGroup)
-		If group Then Self.m_Groups.addLast(group)
-
-		Rem
-		If group <> Null Then
-			
-			If group.m_IsArray Then
-				Self.m_Groups.AddLast(group)
-			Else
-				self.m_Groups.AddLast(group)
-			End If
-			
-		End If
-		end rem
-		
+		If group Then Self._groups.addLast(group)
 	End Method
 	
 	
@@ -549,7 +538,7 @@ Type SodaFile
 		
 		' Check if this group is an array
 		If name.EndsWith("*") Then
-			group.m_IsArray = True
+			group._isArray = True
 			name = name.Replace("*", "")
 		End If
 		
@@ -605,6 +594,10 @@ Type SodaFile
 		
 	End Method
 	
+	''' <summary>Resets the internal cache.</summary>
+	Method resetCache()
+		Self._queryCache.Clear()
+	End Method
 	
 	' ------------------------------------------------------------
 	' -- Collapse methods

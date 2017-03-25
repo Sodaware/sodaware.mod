@@ -19,7 +19,7 @@ Type SodaField
 	Field Name:String
 	Field Value:Object
 	
-	Field m_ArrayValues:TList
+	Field _arrayValues:TList
 	Field isArray:Int	= False
 	
 	Function Create:SodaField(name:String, value:Object, isArray:Int = False)
@@ -34,8 +34,8 @@ Type SodaField
 	End Function
 	
 	Method addToArray(val:Object)
-		If Self.m_ArrayValues = Null Then Self.m_ArrayValues = New TList ; Self.isArray = True
-		Self.m_ArrayValues.AddLast(val)
+		If Self._arrayValues = Null Then Self._arrayValues = New TList ; Self.isArray = True
+		Self._arrayValues.AddLast(val)
 	End Method
 	
 	''' <summary>Gets the value of a field, with optional array offset.</summary>
@@ -47,10 +47,10 @@ Type SodaField
 		If Self.isArray Then
 			
 			If offset > -1 Then
-				If offset >= Self.m_ArrayValues.Count() Then Return Null
-				Return Self.m_ArrayValues.ValueAtIndex(offset)
+				If offset >= Self._arrayValues.Count() Then Return Null
+				Return Self._arrayValues.ValueAtIndex(offset)
 			Else
-				Return Self.m_ArrayValues		
+				Return Self._arrayValues		
 			End If
 			
 		End If
