@@ -34,10 +34,10 @@ Include "soda_file_loader.bmx"
 
 Type SodaFile
 	
+	' TODO: Replace _groups with an objectbag?
 	Field _groups:TList     = New TList		'''< Internal list of of groups in this file
 	Field _queryCache:TMAP  = New TMAP		'''< Internal cache of query results
 	
-	' TODO: Replace _groups with an objectbag?
 	
 	' ------------------------------------------------------------
 	' -- Helper Functions
@@ -54,24 +54,34 @@ Type SodaFile
 	' -- Query Helpers
 	' ------------------------------------------------------------
 	
-	''' <summary>Get the boolean value of a query</summary>
-	Method queryBool:Int(qry:String)
+	''' <summary>Get the boolean value of a query.</summary>
+	''' <param name="qry">The query to execute.</param>
+	''' <returns>True if queried value is >=1 or equals the string "true".</returns>
+	Method queryBool:Byte(qry:String)
 		Local val:String = String(Self.Query(qry))
 		If Int(val) >= 1 Then Return True
 		Return (Lower(val) = "true") 
 	End Method
 	
 	''' <summary>Get the integer value of a query.</summary>
+	''' <param name="qry">The query to execute.</param>
+	''' <returns>Query result as an integer value.</returns>
 	Method queryInt:Int(qry:String)
 		Local val:String = String(Self.Query(qry))
 		Return Int(val.ToString())
 	End Method
-
+	
+	''' <summary>Get the floating point value of a query.</summary>
+	''' <param name="qry">The query to execute.</param>
+	''' <returns>Query result as a floating point value.</returns>
 	Method queryFloat:Float(qry:String)
 		Local val:String = String(Self.Query(qry))
 		Return Float(val.ToString())
 	End Method
 	
+	''' <summary>Get the string value of a query.</summary>
+	''' <param name="qry">The query to execute.</param>
+	''' <returns>Query result as a string value.</returns>
 	Method queryString:String(query:String)
 		Return String(Self.query(query))
 	End Method
@@ -81,24 +91,30 @@ Type SodaFile
 	' -- Query Functions
 	' ------------------------------------------------------------
 	
-	''' <summary>Gets a group, or the value of a field.</summary>
+	''' <summary>
+	''' Run a query on this SodaFile. Returns either a group or the 
+	''' value of a field.
+	''' </summary>
+	''' <param name="qry">The query to execute.</param>
+	''' <returns>Null for invalid queries, or a group/field value.</returns>
 	Method query:Object(qry:String)
 		
-		' Check inputs & cache
+		' Check query is valid.
 		If qry = "" Then Return Null
-		If Self._queryCache.ValueForKey(qry) <> Null Then 
-			Return Self._queryCache.ValueForKey(qry)
-		EndIf
 		
-		' Split into chunks
+		' If the value is in the cache, return it instead of running the query.
+		Local cachedValue:Object = Self._queryCache.ValueForKey(qry)
+		If cachedValue Then Return cachedValue
+		
+		' Split the query into identifier chunks.
 		Local identifiers:String[] = qry.Split(".")
-		Local rootGroup:SodaGroup	= Self.GetGroup(SodaFile_Util.GetName(identifiers[0]), SodaFile_Util.GetOffset(identifiers[0]))
+		Local rootGroup:SodaGroup = Self.GetGroup(SodaFile_Util.GetName(identifiers[0]), SodaFile_Util.GetOffset(identifiers[0]))
 		
-		' Check a valid base group was found
+		' If no valid base group was found return an empty result.
 		If rootGroup = Null Then Return Null
 		
-		' Found, so store in cache
-		Local value:Object	= rootGroup.Query(SodaFile_Util.AssembleQuery(identifiers))
+		' Store the found value in the query cache and return it.
+		Local value:Object = rootGroup.Query(SodaFile_Util.AssembleQuery(identifiers))
 		Self._queryCache.Insert(qry, value)
 		Return value
 		
@@ -169,7 +185,6 @@ Type SodaFile
 		Next
 		
 	End Method
-	
 	
 	Function _getGroupName:String(path:String)
 		Local names:String[] = path.Split(".")

@@ -22,6 +22,9 @@ Type SodaFile_Loader
 	' -- Load functions
 	' ------------------------------------------------------------
 	
+	''' <summary>Load a SodaFile. Supports loading from a filename or froma string stream.</summary>
+	''' <param name="url">URL to load from.</param>
+	''' <returns>The loaded SodaFile.</returns>
 	Function Load:SodaFile(url:Object)
 	
 		' Load from either a stream, or if this fails, any other supported object.
@@ -29,7 +32,7 @@ Type SodaFile_Loader
 		Local result:SodaFile        = New SodaFile
 		Local fileIn:TStream  	     = ReadFile(url)
 		
-		If fileIn <> Null Then
+		If fileIn Then
 			loader.loadFromStream(fileIn, result)
 			fileIn.Close()
 		Else
@@ -46,25 +49,25 @@ Type SodaFile_Loader
 			End Select
 		
 		EndIf
-				
+		
 		Return result
 		
 	End Function
 	
-	Method loadFromString:SodaFile(in:String, result:SodaFile)
+	Method loadFromString(in:String, result:SodaFile)
 		Local data:TBank	= TBank.Create(in.Length)
 		For Local char:Int = 0 To in.Length - 1
 			data.PokeByte(char, in[char])
 		Next
 		Self.LoadFromStream(ReadStream(data), result)
 		data = Null
-		Return result
+		
 	End Method
 		
-	Method loadFromStream:SodaFile(fileIn:TStream, result:SodaFile)
+	Method loadFromStream(fileIn:TStream, result:SodaFile)
 		
-		' [todo] - Throw a file exception here so it can be caught
-		If fileIn = Null Then Throw "Attempted to read from null stream"
+		' [todo] - Throw a TInvalidStreamException instead?
+		If fileIn = Null Then Throw New TStreamReadException
 		
 		While Not(fileIn.Eof())
 			Self.findGroupStart(fileIn)
@@ -74,30 +77,12 @@ Type SodaFile_Loader
 		
 	End Method
 	
-	''' <summary>
-	''' Reads the entire contents of a stream and returns it as a string.
-	''' </summary>
-	Function readAll:String(file:TStream)
-		
-		Local contents:String = ""
-		While Not(file.Eof())
-			contents:+ file.ReadLine() + "~n"
-		Wend
-		
-		' Add a terminator
-		contents:+ "~0"
-		Return contents
-		
-	End Function
-	
-
-	
 	
 	' ------------------------------------------------------------
 	' -- Reading Elements
 	' ------------------------------------------------------------
 	
-	''' <summary>Reads a group from a file stream.</summary>
+	''' <summary>Read a group from a file stream into a soda file.</summary>
 	Method readGroup:SodaGroup(fileIn:TStream, result:SodaFile)
 		
 		Local group:SodaGroup	= New SodaGroup
@@ -109,7 +94,6 @@ Type SodaFile_Loader
 		Local currentField:String	= ""
 		Local currentValue:String	= ""
 		Local inField:Int			= True
-		Local fieldCount:Int		= 0
 		Local inString:Int 			= False
 		Local isArray:Int			= False
 		
@@ -171,7 +155,6 @@ Type SodaFile_Loader
 				
 					' TODO: Fix the bug here for "/*" inside a string
 					If inString = False And oldChar = ASC_FORWARD_SLASH Then
-
 						Self.collapseSingleComment(fileIn)
 						oldChar = 0
 						char = 0
@@ -199,16 +182,17 @@ Type SodaFile_Loader
 '						Print "ARRAY!"
 					EndIf
 					
-				' -- End of declaration
+				' -- End of declaration!
 				Case ASC_SEMI_COLON
 				
-					' Clean up data
+					' Trim the field name and value of any useless whitespace.
 					currentField = currentField.Trim()
 					currentValue = currentValue.Trim()
 					
+					' If the field name contains a ":" character it's a shorthand group.
 					If currentField.Contains(":") Then
 						
-						' Shorthand syntax
+						' Check for shorthand syntax.
 						Local groupName:String = Left(currentField, currentField.Find(":"))
 						Local fieldName:String = Right(currentField, currentField.Length - currentField.Find(":") - 1)
 						
@@ -216,17 +200,18 @@ Type SodaFile_Loader
 						Local shorthandGroup:SodaGroup
 						
 						If group <> Null Then
-							shorthandGroup = group.GetChild(groupName)
+							shorthandGroup = group.getChild(groupName)
 						Else
-							shorthandGroup:SodaGroup = result.GetGroup(groupName)
+							shorthandGroup:SodaGroup = result.getGroup(groupName)
 						EndIf
 						
+						' If no group was found, create and add it.
 						If shorthandGroup = Null Then
 							shorthandGroup = New SodaGroup
 							shorthandGroup.SetIdentifier(groupName)
 							
 							If group <> Null Then
-								group.AddChild(shorthandGroup)
+								group.addChild(shorthandGroup)
 							Else
 								result.addGroup(shorthandGroup)
 							EndIf
@@ -234,12 +219,15 @@ Type SodaFile_Loader
 						
 						shorthandGroup.AddField(fieldName, currentValue, isArray)
 						
-					Else 
+					Else
+						' Add the field to the current group.
 						group.AddField(currentField, currentValue, isArray)
 					End If
+					
+					' End of current field definition reached. Reset values.
 					inField = True
 					inString = False
-					currentfield = ""
+					currentField = ""
 					currentValue = ""
 					isArray = False
 					
@@ -270,8 +258,11 @@ Type SodaFile_Loader
 				' Group terminator
 				Case ASC_CURLY_CLOSE
 				
-					' [todo] - If the current line has not been terminated, should throw an error here!
-				
+					' TODO: Throw an exception if the current line has not been terminated.
+					'If inField = True Then
+					'	Throw SodaFileUnterminatedLineException.Create(currentField)
+					'End If
+					
 					If inString Then 
 						currentValue:+ SodaFile_Loader.CHAR_LOOKUP[char]
 					Else 
@@ -284,7 +275,7 @@ Type SodaFile_Loader
 						If inField Then
 							currentField:+ SodaFile_Loader.CHAR_LOOKUP[char]
 						Else
-							currentValue:+ SodaFile_Loader.CHAR_LOOKUP[char] 'token:+ char
+							currentValue:+ SodaFile_Loader.CHAR_LOOKUP[char]
 						EndIf
 					EndIf
 						
