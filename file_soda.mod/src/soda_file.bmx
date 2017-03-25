@@ -27,6 +27,7 @@ Import sodaware.blitzmax_ascii
 
 Import "soda_file_util.bmx"
 Import "soda_group.bmx"
+Import "soda_file_exceptions.bmx"
 
 Include "soda_file_loader.bmx"
 
