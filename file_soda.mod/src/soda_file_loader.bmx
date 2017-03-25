@@ -114,16 +114,10 @@ Type SodaFile_Loader
 		Local isArray:Int			= False
 		
 		While Not(fileIn.Eof())
-		
+			
+			' Read the current character stream position.
 			oldChar	= char
 			char	= fileIn.ReadByte()
-			
-			' todo: would be nice not to do this
-			If fileIn.Pos() < fileIn.Size() Then
-				nextChar = fileIn.ReadByte()
-				fileIn.Seek(fileIn.Pos() - 1)
-			EndIf
-
 			
 			' Action depends on character:
 			
@@ -152,6 +146,11 @@ Type SodaFile_Loader
 					If inString Then
 						currentValue:+ SodaFile_Loader.CHAR_LOOKUP[char]
 					Else
+						
+						If fileIn.Pos() < fileIn.Size() Then
+							nextChar = fileIn.ReadByte()
+							fileIn.Seek(fileIn.Pos() - 1)
+						EndIf
 						
 						' Script source ([[ ]])
 						If nextChar = ASC_SQUARE_OPEN Then 
