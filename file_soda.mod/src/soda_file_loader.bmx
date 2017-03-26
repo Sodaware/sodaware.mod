@@ -36,34 +36,13 @@ Type SodaFile_Loader
 			loader.loadFromStream(fileIn, result)
 			fileIn.Close()
 		Else
-
-			' TODO: Allow loading from objects, banks and uri's
-			Local streamType:TTypeId = TTypeId.ForObject(url)
-			If streamType = Null Then Throw "Unable to load SodaFile: " + url.toString()
-			
-			Select streamType.Name().ToLower()
-				Case "string"
-					loader.loadFromString(String(url), result)
-					' TODO: Don't query internals. It's bad.
-					If result._groups.Count() = 0 Then result = Null
-			End Select
-		
+			Return Null
 		EndIf
 		
 		Return result
 		
 	End Function
 	
-	Method loadFromString(in:String, result:SodaFile)
-		Local data:TBank	= TBank.Create(in.Length)
-		For Local char:Int = 0 To in.Length - 1
-			data.PokeByte(char, in[char])
-		Next
-		Self.LoadFromStream(ReadStream(data), result)
-		data = Null
-		
-	End Method
-		
 	Method loadFromStream(fileIn:TStream, result:SodaFile)
 		
 		' [todo] - Throw a TInvalidStreamException instead?
