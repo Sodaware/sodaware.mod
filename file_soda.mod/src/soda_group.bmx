@@ -214,10 +214,10 @@ Type SodaGroup
 		
 	End Method
 	
-	Method fieldIsArray:Int(fieldName:String)
+	Method fieldIsArray:Byte(fieldName:String)
 		Local val:SodaField = Sodafield(Self._fields.ValueForKey(fieldName))
 		If val = Null Then Return False
-		Return val.isArray
+		Return val.isArray()
 	End Method
 	
 	

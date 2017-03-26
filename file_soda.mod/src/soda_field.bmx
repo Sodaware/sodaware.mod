@@ -16,26 +16,19 @@ Import brl.linkedlist
 
 Type SodaField
 	
-	Field Name:String
-	Field Value:Object
-	
+	Field _name:String
+	Field _value:Object
 	Field _arrayValues:TList
-	Field isArray:Int	= False
+	Field _isArray:Byte
 	
-	Function Create:SodaField(name:String, value:Object, isArray:Int = False)
-		Local this:SodaField = New SodaField
-		this.name = name
-		
-		If isArray Then this.addToArray(value) Else this.value = value
-		
-		Return this
-		
-		
-	End Function
 	
-	Method addToArray(val:Object)
-		If Self._arrayValues = Null Then Self._arrayValues = New TList ; Self.isArray = True
-		Self._arrayValues.AddLast(val)
+	' ------------------------------------------------------------
+	' -- Getting info
+	' ------------------------------------------------------------
+	
+	''' <summary>Get the name of the field.</summary>
+	Method getName:String()
+		Return Self._name
 	End Method
 	
 	''' <summary>Gets the value of a field, with optional array offset.</summary>
@@ -44,7 +37,7 @@ Type SodaField
 		
 		' If field is array, check if we want an offset or the whole thing, ensuring a valid
 		' offset was used.
-		If Self.isArray Then
+		If Self._isArray Then
 			
 			If offset > -1 Then
 				If offset >= Self._arrayValues.Count() Then Return Null
@@ -56,9 +49,46 @@ Type SodaField
 		End If
 		
 		' Not array, so just return the value
-		Return Self.Value
+		Return Self._value
 		
 	End Method
 	
+	Method isArray:Byte()
+		Return Self._isArray
+	End Method
+	
+	Method addToArray(val:Object)
+		If Self._arrayValues = Null Then
+			Self._arrayValues = New TList
+			Self._isArray = True
+		EndIf
+		Self._arrayValues.AddLast(val)
+	End Method
+	
+	
+	' ------------------------------------------------------------
+	' -- Creation and Destruction
+	' ------------------------------------------------------------
+	
+	''' <summary>Create a new SodaField with a name and value.</summary>
+	''' <param name="name">The name of the field to create.</param>
+	''' <param name="value">The value of the field.</param>
+	''' <param name="isArray">Optional flag. If true, the field is an array.</param>
+	''' <returns>The newly-created field.</returns>
+	Function Create:SodaField(name:String, value:Object, isArray:Byte = False)
+		
+		Local this:SodaField = New SodaField
+		
+		this._name = name
+		
+		If isArray Then
+			this.addToArray(value)
+		Else 
+			this._value = value
+		EndIf
+		
+		Return this
+		
+	End Function
 	
 End Type
