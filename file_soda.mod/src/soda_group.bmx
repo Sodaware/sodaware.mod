@@ -14,21 +14,20 @@ SuperStrict
 
 Import brl.linkedlist
 Import brl.map
+Import sodaware.blitzmax_ascii
 
 Import "soda_field.bmx"
 Import "soda_file_util.bmx"
 
-' ------------------------------------------------------------
-' -- Soda file elements
-' ------------------------------------------------------------
 
 Type SodaGroup
 
 	Const INVALID_OFFSET:Int    = -2
 	
+	Field Identifier:String     = ""
+	
 	Field _isArray:Int          = False
 
-	Field Identifier:String     = ""
 	Field _meta:TMap            = New TMap
 	Field _fields:TMap          = New TMap
 	Field _numberOfFields:Int   = 0
@@ -37,9 +36,18 @@ Type SodaGroup
 	Field _children:TList       = New TList
 	Field _childrenCount:Int    = 0
 	
+	
 	' ------------------------------------------------------------
 	' -- Public API
 	' ------------------------------------------------------------
+	
+	Method countFields:Int()
+		Return Self._numberOfFields
+	End Method
+	
+	Method countChildren:Int()
+		Return Self._childrenCount
+	End Method
 	
 	' TODO: SLOW
 	Method getFieldNames:TList()
@@ -64,7 +72,7 @@ Type SodaGroup
 	End Method
 	
 	''' <summary>Get a field or child via a simple query.</summary>
-	Method Query:Object(qry:String)
+	Method query:Object(qry:String)
 	
 		' Check inputs
 		If qry = "" Then Return Null
@@ -109,49 +117,6 @@ Type SodaGroup
 		Return Self.Identifier
 	End Method
 	
-	Method getMeta:String(name:String)
-		Return String( Self._meta.ValueForKey(name.ToLower()) )
-	End Method
-
-	Method setMeta(name:String, value:String)
-		Self._meta.Insert(name, value)
-	End Method
-
-	Method addChild(child:SodaGroup)
-		Self._children.AddLast(child)
-		Self._childLookup.Insert(child.Identifier, child)
-		Self._childrenCount :+ 1
-	End Method
-	
-	Method countFields:Int()
-		Return Self._numberOfFields
-	End Method
-	
-	Method addField(fieldName:String, fieldValue:String, isArray:Int = False)
-	
-	'	Print "adding field: " + fieldName
-		If Right(fieldName, 1) = "*" Then isArray = True
-		
-		If isArray Then
-			Local val:SodaField = Sodafield(Self._fields.ValueForKey(fieldName))
-			If val = Null Then
-				val:SodaField = SodaField.Create(fieldName, fieldValue, isArray)
-				Self._fields.Insert(fieldName, val)
-				Self._numberOfFields:+ 1
-			Else
-				val.addToArray(fieldValue)
-			End If
-			
-		Else
-			Self._fields.Insert(fieldName, SodaField.Create(fieldName, fieldValue, isArray))
-			Self._numberOfFields:+ 1
-		EndIf
-
-	'	Self.m_Fields.Insert(fieldName, fieldValue)
-		
-'		Self.m_Fields.Insert(fieldName, fieldObject)
-	End Method
-
 	Method getChild:SodaGroup(ident:String, offset:Int = -1)
 		
 		If Self._childLookup = Null Then Return Null
@@ -197,11 +162,7 @@ Type SodaGroup
 		Return String(Self.getField(fieldName, offset, defaultValue))
 	End Method
 	
-	Method countChildren:Int()
-		Return Self._childrenCount
-	End Method
-	
-	Method GetChildren:TList(name:String = "")
+	Method getChildren:TList(name:String = "")
 		If name = "" Then Return Self._children
 		Local children:TList = New TList
 		For Local child:SodaGroup = EachIn Self._children
@@ -210,20 +171,64 @@ Type SodaGroup
 		Return children
 	End Method
 	
-	Method FieldIsArray:Int(fieldName:String)
+	Method getMeta:String(name:String)
+		Return String( Self._meta.ValueForKey(name.ToLower()) )
+	End Method
+
+	Method setMeta(name:String, value:String)
+		Self._meta.Insert(name, value)
+	End Method
+
+	
+	' ------------------------------------------------------------
+	' -- Adding children and fields
+	' ------------------------------------------------------------
+	
+	Method addChild(child:SodaGroup)
+		If child = Null Then Return
+		
+		' Add to list of children and to the lookup
+		Self._children.AddLast(child)
+		Self._childLookup.Insert(child.Identifier, child)
+		Self._childrenCount :+ 1		
+	End Method
+	
+	Method addField(fieldName:String, fieldValue:String, isArray:Byte = False)
+	
+		If fieldName[fieldName.Length - 1] = ASC_ASTERISK Then isArray = True
+		
+		If isArray Then
+			Local val:SodaField = Sodafield(Self._fields.ValueForKey(fieldName))
+			If val = Null Then
+				val:SodaField = SodaField.Create(fieldName, fieldValue, isArray)
+				Self._fields.Insert(fieldName, val)
+				Self._numberOfFields:+ 1
+			Else
+				val.addToArray(fieldValue)
+			End If
+			
+		Else
+			Self._fields.Insert(fieldName, SodaField.Create(fieldName, fieldValue, isArray))
+			Self._numberOfFields:+ 1
+		EndIf
+		
+	End Method
+	
+	Method fieldIsArray:Int(fieldName:String)
 		Local val:SodaField = Sodafield(Self._fields.ValueForKey(fieldName))
 		If val = Null Then Return False
 		Return val.isArray
 	End Method
 	
+	
 	' ------------------------------------------------------------
 	' -- Internal methods
 	' ------------------------------------------------------------
 	
-	Method SetIdentifier(identifierText:String)
+	Method setIdentifier(identifierText:String)
 		
 		If identifierText = "" Then identifierText = "*"
-	
+		
 		' If no special cases, return as is
 		If identifierText.Contains(":") = False And identifierText.Contains(",") = False And identifierText.Contains(";") = False Then
 			Self.Identifier = identifierText
@@ -236,22 +241,19 @@ Type SodaGroup
 		
 		' Field name contains meta data
 		Local fields:String[] = cleanedIdentifier.Split(",")
-	
+		
 		' Go through fields, splitting into names / meta
 		For Local fieldPair:String = EachIn fields
 			Local pairs:String[] = fieldPair.Split(":")
 			Self._meta.Insert(pairs[0].ToLower(), pairs[1])
 		Next
-
 		
 		If Self._meta.IsEmpty() Then 
 			Self.Identifier = identifierText 
 		else
 			Self.Identifier = String(Self._meta.ValueForKey("n"))
 		EndIf
-
-	
+		
 	End Method
 	
 End Type
-
