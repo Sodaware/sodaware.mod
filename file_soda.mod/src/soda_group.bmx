@@ -35,7 +35,7 @@ Type SodaGroup
 	
 	Field _childLookup:TMap     = New TMap
 	Field _children:TList       = New TList
-	
+	Field _childrenCount:Int    = 0
 	
 	' ------------------------------------------------------------
 	' -- Public API
@@ -120,6 +120,7 @@ Type SodaGroup
 	Method addChild(child:SodaGroup)
 		Self._children.AddLast(child)
 		Self._childLookup.Insert(child.Identifier, child)
+		Self._childrenCount :+ 1
 	End Method
 	
 	Method countFields:Int()
@@ -151,7 +152,7 @@ Type SodaGroup
 '		Self.m_Fields.Insert(fieldName, fieldObject)
 	End Method
 
-	Method GetChild:SodaGroup(ident:String, offset:Int = -1)
+	Method getChild:SodaGroup(ident:String, offset:Int = -1)
 		
 		If Self._childLookup = Null Then Return Null
 		
@@ -196,9 +197,8 @@ Type SodaGroup
 		Return String(Self.getField(fieldName, offset, defaultValue))
 	End Method
 	
-	' TODO: Should be fast enough unless called lots of times.
-	Method CountChildren:Int()
-		Return Self._children.Count()
+	Method countChildren:Int()
+		Return Self._childrenCount
 	End Method
 	
 	Method GetChildren:TList(name:String = "")

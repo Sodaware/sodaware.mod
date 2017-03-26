@@ -26,7 +26,7 @@ Type SodaFile_Loader
 	''' <param name="url">URL to load from.</param>
 	''' <returns>The loaded SodaFile.</returns>
 	Function Load:SodaFile(url:Object)
-	
+		
 		' Load from either a stream, or if this fails, any other supported object.
 		Local loader:SodaFile_Loader = New SodaFile_Loader
 		Local result:SodaFile        = New SodaFile
@@ -131,6 +131,7 @@ Type SodaFile_Loader
 						currentValue:+ SodaFile_Loader.CHAR_LOOKUP[char]
 					Else
 						
+						' Read next character to see if this is a "[[" script block.
 						If fileIn.Pos() < fileIn.Size() Then
 							nextChar = fileIn.ReadByte()
 							fileIn.Seek(fileIn.Pos() - 1)
@@ -301,7 +302,8 @@ Type SodaFile_Loader
 				
 				' Start of group
 				Case ASC_SQUARE_OPEN
-					' remove this!!
+					' Seeking backwards is a little slow, but it's only used when the file 
+					' is first read so it should be ok.
 					fileIn.Seek(fileIn.Pos() - 1)
 					Return
 				
@@ -321,21 +323,24 @@ Type SodaFile_Loader
 	''' <summary>Reads the identifier for a group from a stream.</summary>
 	Method readGroupIdentifier(fileIn:TStream, group:SodaGroup)
 		
+		' Check the stream is valid.
+		If fileIn = Null Then Throw New TStreamReadException
+
 		Local name:String
 		Local charIn:Byte
 		
 		Repeat
-			If fileIn = Null Or fileIn.Eof() Then Exit
 			charIn = fileIn.ReadByte()
 			If charIn <> ASC_SQUARE_CLOSE Then
 				name:+ SodaFile_Loader.CHAR_LOOKUP[charIn]
 			EndIf
-		Until charIn = ASC_SQUARE_CLOSE ' = "]"
+		Until charIn = ASC_SQUARE_CLOSE Or fileIn.Eof()' = "]"
 		
-		' Check if this group is an array
-		If name.EndsWith("*") Then
+		' Check if this group is an array. If it is, set it as 
+		' an array and cleanup the name.
+		If name[name.Length - 1] = ASC_ASTERISK Then
 			group._isArray = True
-			name = name.Replace("*", "")
+			name = Left(name, name.Length - 1)
 		End If
 		
 		group.setIdentifier(name)

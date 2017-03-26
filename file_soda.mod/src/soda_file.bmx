@@ -58,7 +58,7 @@ Type SodaFile
 	''' <param name="qry">The query to execute.</param>
 	''' <returns>True if queried value is >=1 or equals the string "true".</returns>
 	Method queryBool:Byte(qry:String)
-		Local val:String = String(Self.Query(qry))
+		Local val:String = String(Self.query(qry))
 		If Int(val) >= 1 Then Return True
 		Return (Lower(val) = "true") 
 	End Method
@@ -67,7 +67,7 @@ Type SodaFile
 	''' <param name="qry">The query to execute.</param>
 	''' <returns>Query result as an integer value.</returns>
 	Method queryInt:Int(qry:String)
-		Local val:String = String(Self.Query(qry))
+		Local val:String = String(Self.query(qry))
 		Return Int(val.ToString())
 	End Method
 	
@@ -75,15 +75,15 @@ Type SodaFile
 	''' <param name="qry">The query to execute.</param>
 	''' <returns>Query result as a floating point value.</returns>
 	Method queryFloat:Float(qry:String)
-		Local val:String = String(Self.Query(qry))
+		Local val:String = String(Self.query(qry))
 		Return Float(val.ToString())
 	End Method
 	
 	''' <summary>Get the string value of a query.</summary>
 	''' <param name="qry">The query to execute.</param>
 	''' <returns>Query result as a string value.</returns>
-	Method queryString:String(query:String)
-		Return String(Self.query(query))
+	Method queryString:String(qry:String)
+		Return String(Self.query(qry))
 	End Method
 	
 	
@@ -120,7 +120,9 @@ Type SodaFile
 		
 	End Method
 	
-	' TODO: Can this be made better?
+	''' <summary>Get a list of all nodes that match a query.</summary>
+	''' <param name="qry">The query to run.</param>
+	''' <returns>A list of found nodes.</returns>
 	Method getNodes:TList(qry:String)
 		
 		Local nodes:TList
