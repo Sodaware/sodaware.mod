@@ -42,6 +42,14 @@ Type SodaFile
 		Return Self._groups
 	End Method
 	
+	Method getGroupAtIndex:SodaGroup(index:Int)
+		Return SodaGroup(Self._groups.ValueAtIndex(index))
+	End Method
+	
+	Method countGroups:Int()
+		Return Self._groups.Count()
+	End Method
+	
 	
 	' ------------------------------------------------------------
 	' -- Query Helpers
