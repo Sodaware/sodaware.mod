@@ -35,7 +35,7 @@ Type File_ConfigSerializer
 		Self.Save(this, fileName)
 	End Method
 
-	Function Load:Int(this:Config, fileName:String) Abstract
+	Function Load:Byte(this:Config, fileName:String) Abstract
 	Function Save(this:Config, fileName:String) Abstract
 	
 	
