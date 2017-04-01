@@ -249,6 +249,7 @@ Type ObjectBag
 	''' <param name="sortOrder">The order to use (either SORT_ASC or SORT_DESC). Default is SORT_ASC.</param>
 	''' <param name="compareFunction">The function used to compare the two objects.</param>
 	Method sort(sortOrder:Byte = SORT_ASC, compareFunction:Int(obj1:Object, obj2:Object) = CompareBagObjects)
+	Method sort(sortOrder:Int = SORT_ASC, compareFunction:Int(obj1:Object, obj2:Object) = CompareBagObjects)
 		
 		' Check if bag needs to be sorted
 		If Self.getSize() <= 1 Then Return
