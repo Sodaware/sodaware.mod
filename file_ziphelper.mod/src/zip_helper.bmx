@@ -92,8 +92,32 @@ Type ZipHelper
 		
 	End Function
 	
-	
-	' ------------------------------------------------------------
+	Function GetFileList:TList(zipPath:String)
+
+		Local fileList:TList = New TList
+
+		' Open the archive
+		Local fileIn:ZipReader = New ZipReader
+		fileIn.OpenZip(zipPath)
+
+		If fileIn.m_zipFileList.getFileCount() = 0 Then Return fileList
+
+		For Local zipFileInfo:SZipFileEntry = EachIn fileIn.m_zipFileList.fileList
+			Local fileName:String = zipFileInfo.simpleFileName
+
+			If fileName = "." Or fileName = ".." Then Continue
+			fileList.AddLast(fileName)
+
+		Next
+
+		fileIn.CloseZip()
+
+		Return fileList
+
+	End Function
+
+
+    ' ------------------------------------------------------------
 	' -- Zip path extractors
 	' ------------------------------------------------------------
 	
