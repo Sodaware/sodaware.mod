@@ -73,6 +73,23 @@ Include "src/console_color_ansi.bmx"
 
 Public
 
+Function Console_Color_DisableFormatting()
+?Win32
+	Console_Color_Win32.DisableFormatting()
+?Not Win32
+	Console_Color_ANSI.DisableFormatting()
+?
+End Function
+
+Function Console_Color_EnableFormatting()
+?Win32
+	Console_Color_Win32.EnableFormatting()
+?Not Win32
+	Console_Color_ANSI.EnableFormatting()
+?
+End Function
+
+
 ''' <summary>Write a string to the console that contains colourized information.</summary>
 ''' <param name="str">The string to display.</param>
 Function WriteC(str:String = "")

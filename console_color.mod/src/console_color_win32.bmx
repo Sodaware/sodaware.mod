@@ -37,7 +37,8 @@ Type Console_Color_Win32
 	
 	Global s_CurrentBackground:Int
 	Global s_CurrentForeground:Int
-	
+    Global s_IsEnabled:Byte        = True
+
 	' -- Two lookup tables for foreground and background. We find the index of the code in the lookup 
 	' -- string, and use it to get the color from the relevant table. 
 	' -- It's not the nicest code ever, but it's preferable to a long list of "If code = x then set color y" 
@@ -47,6 +48,14 @@ Type Console_Color_Win32
 	
 	Global FOREGROUND_TABLE:Int[] = [COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE, COLOR_MAGENTA, COLOR_PURPLE, COLOR_CYAN, COLOR_WHITE, COLOR_BLACK + COLOR_WHITE, COLOR_RED + COLOR_WHITE, COLOR_GREEN + COLOR_WHITE, COLOR_YELLOW + COLOR_WHITE, COLOR_BLUE + COLOR_WHITE, COLOR_MAGENTA + COLOR_WHITE, COLOR_PURPLE + COLOR_WHITE, COLOR_CYAN + COLOR_WHITE, COLOR_WHITE + COLOR_WHITE]
 	Global BACKGROUND_TABLE:Int[] = [COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, COLOR_WHITE]
+
+    Function EnableFormatting()
+        Console_Color_Win32.s_IsEnabled = True
+    End Function
+
+    Function DisableFormatting()
+        Console_Color_Win32.s_IsEnabled = False
+    End Function
 
 	Function Write(str:String)
 		
@@ -76,9 +85,11 @@ Type Console_Color_Win32
 					' -- Background
 					Console_Color_Win32.s_CurrentBackground = Console_Color_Win32.BACKGROUND_TABLE[Console_Color_Win32.BACKGROUND_LOOKUP.Find(nextChar)]
 				End If
-				
-				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), Console_Color_Win32.s_CurrentForeground | (Console_Color_Win32.s_CurrentBackground Shl 4))
-				
+
+				If Console_Color_Win32.s_IsEnabled Then
+                    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), Console_Color_Win32.s_CurrentForeground | (Console_Color_Win32.s_CurrentBackground Shl 4))
+				EndIf
+
 				strpos = strpos + 1
 				
 			Else

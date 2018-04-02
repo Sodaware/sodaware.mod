@@ -27,7 +27,10 @@ Const COLOR_CLEAR:Int   = 40
 Const BACKGROUND_OFFSET:Int	= 10
 
 Type Console_Color_ANSI
-	
+
+    ' -- Options
+    Global s_IsEnabled:Byte         = True
+
 	' -- Current style
 	Global s_IsBold:Int             = False
 	Global s_IsUnderline:Int        = False
@@ -41,7 +44,14 @@ Type Console_Color_ANSI
 	Const BACKGROUND_LOOKUP:String  = "01234567"
 	Global BACKGROUND_TABLE:Int[]   = [COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, COLOR_WHITE]
 
-	
+    Function EnableFormatting()
+        Console_Color_ANSI.s_IsEnabled = True
+    End Function
+
+    Function DisableFormatting()
+        Console_Color_ANSI.s_IsEnabled = False
+    End Function
+
 	Function Write(str:String)
 		
 		StandardIOStream.WriteString(Console_Color_ANSI.Convert(str))
@@ -101,8 +111,10 @@ Type Console_Color_ANSI
 					
 					ansiCode:+ (Console_Color_ANSI.s_CurrentForeground) + ";"
 					ansiCode:+ (Console_Color_ANSI.s_CurrentBackground + background_offset) + "m"
-					
-					output:+ ansiCode
+
+                    If Console_Color_Ansi.s_IsEnabled Then
+                        output:+ ansiCode
+                    EndIf
 					strpos = strpos + 1
 				endif
 			Else
@@ -110,17 +122,7 @@ Type Console_Color_ANSI
 			End If
 		Next
 		
-		return output
-		
-		str = str.Replace("%n", Chr(27) + "[0;37m")	' Reset
-		
-		' Red text
-		str = str.Replace("%r", Chr(27) + "[31m")
-		str = str.Replace("%w", Chr(27) + "[1;5;41;37m")
-		str = str.Replace("%R", Chr(27) + "[1;31m")
-		str = str.Replace("%1", Chr(27) + "[1;41m")
-		
-		Return str
+		Return output
 		
 	End Function
 	
