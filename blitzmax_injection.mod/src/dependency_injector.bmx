@@ -132,7 +132,7 @@ Type DependencyInjector
 	End Function
 	
 	Function _addInjectableFieldsForType(objectInfo:InjectableObject, objType:TTypeId)
-		For Local fld:TField = EachIn objType.Fields()
+		For Local fld:TField = EachIn objType.EnumFields()
 			If fld.MetaData("injectable") Then
 				objectInfo._addInjectableField(fld.TypeId(), fld)
 			End If

@@ -1,7 +1,7 @@
 ' ------------------------------------------------------------------------------
 ' -- src/i_injectable.bmx
 ' --
-' -- Interface that all injectable objects should extend. Adds some hidden
+' -- Interface that all injectable objects must extend. Adds some hidden
 ' -- fields to store injectable data.
 ' --
 ' -- This file is part of sodaware.mod (https://www.sodaware.net/sodaware.mod/)
@@ -18,7 +18,7 @@ Import brl.reflection
 Import sodaware.ObjectBag
 
 ''' <summary>
-''' Interface that all injectable objects should extend. Adds some hidden
+''' Interface that all injectable objects must extend. Adds some hidden
 ''' fields to store injectable data.
 ''' </summary>
 Type IInjectable
@@ -102,7 +102,7 @@ Type IInjectable
 	Method _addInjectableFields()
 		
 		Local objType:TTypeId = TTypeId.ForObject(Self)
-		For Local fld:TField = EachIn objType.Fields()
+		For Local fld:TField = EachIn objType.EnumFields()
 			If fld.MetaData("injectable") Then
 				Self._addInjectableField(fld.TypeId(), fld)
 			End If
