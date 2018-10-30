@@ -88,7 +88,7 @@ Type ExpressionTokeniser
 		EndIf
 
 		' Check for end of file.
-		If Self._peekChar() = -1 Then
+		If Self._peekChar() = 0 Then
 			self.CurrentToken = TOKEN_EOF
 			Return 0
 		EndIf
@@ -101,9 +101,9 @@ Type ExpressionTokeniser
 			If Self.ignoreWhitespace = False And CharHelper.IsWhitespace(char) Then
 
 				Local curString:String
-				Local ch2:Int
+				Local ch2:Byte
 
-				While (ch2 = Self._peekChar()) <> -1
+				While (ch2 = Self._peekChar()) <> 0
 
 					If Not(CharHelper.IsWhitespace(Chr(ch2))) Then
 						Exit
@@ -127,8 +127,8 @@ Type ExpressionTokeniser
 				self.CurrentToken = TOKEN_NUMBER
 				Local s:String = char
 
-				While Self._peekChar() <> -1
 
+				While Self._peekChar() <> 0
 					char = Chr(Self._peekChar())
 
 					If CharHelper.IsDigit(char)
@@ -156,7 +156,7 @@ Type ExpressionTokeniser
 				self.CurrentToken	= TOKEN_KEYWORD
 				Local s:String = char
 
-				While Self._peekChar() <> -1
+				While Self._peekChar() <> 0
 
 					If (Chr(Self._peekChar()) = "_" Or Chr(Self._peekChar()) = "-" Or CharHelper.IsLetterOrDigit(Chr(Self._peekChar()))) Then
 						s = s + Chr(Self._readChar())
@@ -266,7 +266,7 @@ Type ExpressionTokeniser
 	''' <summary>Gets the TokenType for a character.</summary>
 	''' <oaram name="charValue">The character to lookup.</param>
 	''' <returns>TokenType value.</returns>
-	Function CharToToken:Int(charValue:String)
+	Function CharToToken:Byte(charValue:String)
 
 		Select charValue
 
@@ -306,7 +306,7 @@ Type ExpressionTokeniser
 
 		self.CurrentToken	= TOKEN_STRING
 
-		While Self._peekChar() <> -1
+		While Self._peekChar() <> 0
 			char = Chr(Self._peekChar())
 
 			If char = "'" Then
@@ -335,16 +335,13 @@ Type ExpressionTokeniser
 		Return charValue
 	End Method
 
-	Method _peekChar:Int()
-
-		Local charValue:Int = -1
-
-		If Self.CurrentPosition < Len(Self._expressionText) Then
-			charValue	= Asc(Mid(self._expressionText, self.CurrentPosition + 1, 1))
+	' TODO: Return 0 for end?
+	Method _peekChar:Byte()
+		If Self.CurrentPosition < Self._expressionText.Length Then
+			Return Self._expressionText[Self.currentPosition]
 		EndIf
 
-		Return charValue
-
+		Return 0
 	End Method
 
 	''' <summary>Reads all whitespace characters until the next non-whitespace character.</summary>
