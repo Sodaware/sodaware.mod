@@ -14,6 +14,7 @@
 SuperStrict
 
 Import brl.retro
+Import sodaware.blitzmax_ascii
 Import "char_helper.bmx"
 
 ''' <summary>Class for tokenising strings into something usable.</summary>
@@ -166,62 +167,56 @@ Type ExpressionTokeniser
 				Wend
 
 				self.TokenText	= s
-				If Self.TokenText.EndsWith("-") Then
-					' Error
-				EndIf
 				Return 0
 
 			EndIf
 
-			' Move to next char?
-		'	Self.ReadChar()
-
 			' Read double character operators
 
 			' Double colon - namespace seperator
-			If (char = ":" And Self._peekChar() = Asc(":")) Then
-				self.CurrentToken	= TOKEN_DOUBLE_COLON
-				self.TokenText		= "::"
+			If (char = ":" And Self._peekChar() = ASC_COLON) Then
+				self.currentToken	= TOKEN_DOUBLE_COLON
+				self.tokenText		= "::"
 				Self._readChar()
 				Return 0
 			EndIf
 
 			' Not equal
-			If char = "!" And Self._peekChar() = Asc("=") Then
-				self.CurrentToken	= TOKEN_NOT_EQUAL
-				self.TokenText		= "!="
+			If char = "!" And Self._peekChar() = ASC_EQUALS Then
+				self.currentToken	= TOKEN_NOT_EQUAL
+				self.tokenText		= "!="
 				Self._readChar()
 				Return 0
 			EndIf
 
 			' Not equal (alternative)
-			If char = "<" And Self._peekChar() = Asc(">") Then
-				self.CurrentToken	= TOKEN_NOT_EQUAL
-				self.TokenText		= "<>"
+			If char = "<" And Self._peekChar() = ASC_GREATER_THAN Then
+				self.currentToken	= TOKEN_NOT_EQUAL
+				self.tokenText		= "<>"
 				Self._readChar()
 				Return 0
 			EndIf
 
 			' Equal (C++ style)
-			If char = "=" And Self._peekChar() = Asc("=") Then
-				self.CurrentToken	= TOKEN_EQUAL
-				self.TokenText		= "=="
+			If char = "=" And Self._peekChar() = ASC_EQUALS Then
+				self.currentToken	= TOKEN_EQUAL
+				self.tokenText		= "=="
 				Self._readChar()
 				Return 0
 			EndIf
 
 			' Less than equal (<=)
-			If char = "<" And Self._peekChar() = Asc("=") Then
-				self.CurrentToken	= TOKEN_LE
-				self.TokenText		= "<="
+			If char = "<" And Self._peekChar() = ASC_EQUALS Then
+				self.currentToken	= TOKEN_LE
+				self.tokenText		= "<="
 				Self._readChar()
 				Return 0
 			EndIf
 
-			' Greater than equal (<=)
-			If char = ">" And Self._peekChar() = Asc("=") Then
-				self.CurrentToken	= TOKEN_GE
-				self.TokenText		= ">="
+			' Greater than equal (>=)
+			If char = ">" And Self._peekChar() = ASC_EQUALS Then
+				self.currentToken	= TOKEN_GE
+				self.tokenText		= ">="
 				Self._readChar()
 				Return 0
 			EndIf
