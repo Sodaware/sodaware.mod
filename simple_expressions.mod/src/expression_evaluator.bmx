@@ -195,7 +195,7 @@ Type ExpressionEvaluator
 			' Right hand side
 			Self._tokeniser.GetNextToken()
 
-			Local p2%		= Self._tokeniser.CurrentPosition
+			Local p2:Int		= Self._tokeniser.CurrentPosition
 			Local o2:ScriptObject	= Self.ParseRelationalExpression()
 			Local p3:Int	= Self._tokeniser.CurrentPosition
 
@@ -400,7 +400,7 @@ Type ExpressionEvaluator
 		' -- Plain number values
 		If Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_NUMBER Then
 
-			Local number$	= Self._tokeniser.TokenText
+			Local number:String = Self._tokeniser.TokenText
 
 			p0	= self._tokeniser.CurrentPosition
 			Self._tokeniser.GetNextToken()
@@ -505,7 +505,7 @@ Type ExpressionEvaluator
 
 			p0 = self._tokeniser.CurrentPosition
 
-			Local functionOrPropertyName$	= Self._tokeniser.TokenText
+			Local functionOrPropertyName:String = Self._tokeniser.TokenText
 
 			Select Lower(functionOrPropertyName)
 				Case "if"		; Return Self.ParseConditional()
@@ -518,7 +518,7 @@ Type ExpressionEvaluator
 			Self._tokeniser.GetNextToken()
 
 			Local args:TList	= New TList
-			Local isFunction%	= False
+			Local isFunction:Int	= False
 
 			' Get the current property or function name
 			If Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_DOUBLE_COLON Then
@@ -568,7 +568,7 @@ Type ExpressionEvaluator
 				Self._tokeniser.GetNextToken()
 
 				' TODO: Fix function arguments
-				Local currentArgument%			= 0
+				Local currentArgument:Int			= 0
 				Local parameterCount:Int		= Self._countFunctionParameters(functionOrPropertyName)
 
 				' TODO: Replace with proper bug checking
@@ -585,9 +585,9 @@ Type ExpressionEvaluator
 					' Only parse if we have parameters
 					If parameterCount > 0 Then
 
-						Local beforeArg%		= Self._tokeniser.CurrentPosition
+						Local beforeArg:Int		= Self._tokeniser.CurrentPosition
 						Local e:ScriptObject	= Self.ParseExpression()
-						Local afterArg%			= self._tokeniser.CurrentPosition
+						Local afterArg:Int		= Self._tokeniser.CurrentPosition
 
 						' Evaluate (will skip in parse only mode)
 						If self._evalMode <> MODE_PARSE_ONLY Then

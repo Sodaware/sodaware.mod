@@ -108,11 +108,11 @@ Type ExpressionTokeniser
 						Exit
 					EndIf
 
-					curString$	= curString$ + Chr(ch2)
+					curString:String = curString:String + Chr(ch2)
 					Self._readChar()
 
 					self.CurrentToken	= TOKEN_WHITESPACE
-					self.TokenText		= curString$
+					self.TokenText		= curString:String
 
 					Return 0
 
@@ -123,8 +123,8 @@ Type ExpressionTokeniser
 			' Read numbers
 			If CharHelper.IsDigit(char) Then
 
-				self.CurrentToken	= TOKEN_NUMBER
-				Local s$	= char
+				self.CurrentToken = TOKEN_NUMBER
+				Local s:String = char
 
 				While Self._peekChar() <> -1
 
@@ -305,9 +305,9 @@ Type ExpressionTokeniser
 
 	Method _readString:String()
 
-		Local s$	= ""
-		Local i%	= 0
-		Local char$	= Chr(Self._peekChar())
+		Local s:String	= ""
+		Local i:Int	= 0
+		Local char:String	= Chr(Self._peekChar())
 
 		self.CurrentToken	= TOKEN_STRING
 
@@ -340,9 +340,9 @@ Type ExpressionTokeniser
 		Return charValue
 	End Method
 
-	Method _peekChar%()
+	Method _peekChar:Int()
 
-		Local charValue% = -1
+		Local charValue:Int = -1
 
 		If Self.CurrentPosition < Len(Self._expressionText) Then
 			charValue	= Asc(Mid(self._expressionText, self.CurrentPosition + 1, 1))
@@ -367,7 +367,7 @@ Type ExpressionTokeniser
 	' -- Creation and Destruction
 	' ------------------------------------------------------------
 
-	Function Create:ExpressionTokeniser(expression$)
+	Function Create:ExpressionTokeniser(expression:String)
 
 		Local this:ExpressionTokeniser = New ExpressionTokeniser
 
