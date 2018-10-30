@@ -67,14 +67,25 @@ Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 	End Method
 
 
-''	Method SimpleFunctionTest() { test }
-''		Local eval:ExpressionEvaluator = ExpressionEvaluator.Create("namespace::function()")
-''		Local func:ScriptFunction = New ScriptFunction
-''		func.m_FullName= "namespace::function"
-''		eval.RegisterFunction(func)
-''		Local res:ScriptObject = eval.Evaluate()
-''		Self.assertEquals("20", res.ValueString(), ":(")
-''	End Method
+	' ------------------------------------------------------------
+	' -- Custom Function Tests
+	' ------------------------------------------------------------
+
+	' TODO: Test that functions can be registered.
+
+	Method testCustomScriptFunctionsCanBeCalled() { test }
+		Local eval:ExpressionEvaluator = ExpressionEvaluator.Create("test::simple-function()")
+		eval.registerFunction(New FunctionTest)
+		Local res:ScriptObject = eval.evaluate()
+		Self.assertEqualsI(20, res.ValueInt())
+	End Method
+
+	Method testCustomScriptFunctionsCanEvaluateParameters() { test }
+		Local eval:ExpressionEvaluator = ExpressionEvaluator.Create("test::add(1 + 1, 2 + 2)")
+		eval.registerFunction(New AddFunctionTest)
+		Local res:ScriptObject = eval.evaluate()
+		Self.assertEqualsI(6, res.ValueInt())
+	End Method
 
 
 	' ------------------------------------------------------------
@@ -120,15 +131,30 @@ End Type
 
 Private
 
-Type FunctionTest Extends ScriptFunction
+Type FunctionTest Extends SimpleExpressions_Function
 	Method New()
-		Self._fullName = "namespace::my-func"
+		Self._fullName       = "test::simple-function"
+		Self._parameterCount = 0
 	End Method
 
-	Method Execute:ScriptObject()
+	Method execute:ScriptObject(args:TList)
 		Return ScriptObjectFactory.NewInt(20)
 	End Method
-
 End Type
+
+Type AddFunctionTest Extends SimpleExpressions_Function
+	Method New()
+		Self._fullName       = "test::add"
+		Self._parameterCount = 2
+	End Method
+
+	Method execute:ScriptObject(args:TList)
+		Return ScriptObjectFactory.NewInt( ..
+			Int(args.valueAtIndex(0).toString()) + ..
+			Int(args.valueAtIndex(1).toString()) ..
+		)
+	End Method
+End Type
+
 
 Public

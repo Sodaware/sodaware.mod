@@ -51,25 +51,24 @@ Type ExpressionEvaluator
 	Method registerFunctionSet(set:FunctionSet)
 
 		Local setType:TTypeId = TTypeId.ForObject(set)
-		For Local fnc:TMethod = EachIn setType.Methods().Values()
+		For Local fnc:TMethod = EachIn setType.EnumMethods()
 
 			' Skip private methods and constructor.
 			If fnc.Name().StartsWith("_") Or fnc.Name() = "New" Then Continue
 
 			' Get function call name from meta.
 			Local name:String = fnc.MetaData("name")
-
 			' Register the function if it has a name.
 			If name <> "" Then
-				Self._registeredFunctions.Insert(name, ScriptFunction.Create(set, fnc))
+				Self._registeredFunctions.Insert(name, SimpleExpressions_Function.Create(set, fnc))
 			EndIf
 
 		Next
 
 	End Method
 
-	''' <summary>Register a ScriptFunction object to use.</summary>
-	Method registerFunction(func:ScriptFunction)
+	''' <summary>Register a SimpleExpressions_Function object to use.</summary>
+	Method registerFunction(func:SimpleExpressions_Function)
 		Self._registeredFunctions.Insert(func.getFullName(), func)
 	End Method
 
@@ -104,7 +103,7 @@ Type ExpressionEvaluator
 		If expression = Null Then Return Null
 
 		Local eval:ExpressionEvaluator = ExpressionEvaluator.Create(expression)
-		Local result:ScriptObject = eval.Evaluate()
+		Local result:ScriptObject = eval.evaluate()
 		eval = Null
 		Return result
 
@@ -128,14 +127,14 @@ Type ExpressionEvaluator
 	' -- Evaluation Methods
 	' ------------------------------------------------------------
 
+	' TODO: shouldn't this be evaluate
 	Method parseExpression:ScriptObject()
 		Return Self.parseBooleanOr()
 	End Method
 
 	' TODO: Should this be called `evaluateBooleanOr`?
 	Method parseBooleanOr:ScriptObject()
-
-		Local o1:ScriptObject		= Self.ParseBooleanAnd()
+		Local o1:ScriptObject = Self.parseBooleanAnd()
 
 		While Self._tokeniser.isKeyword("or")
 
@@ -171,7 +170,7 @@ Type ExpressionEvaluator
 	Method parseBooleanAnd:ScriptObject()
 
 		Local p0:Int	= Self._tokeniser.CurrentPosition
-		Local o:ScriptObject	= Self.ParseRelationalExpression()
+		Local o:ScriptObject	= Self.parseRelationalExpression()
 
 		Local oldEvalMode:Int	= Self._evalMode
 
@@ -213,9 +212,9 @@ Type ExpressionEvaluator
 	' TODO: Fix all of these :D
 	Method parseRelationalExpression:ScriptObject()
 
-		Local o:ScriptObject = Self.ParseAddSubtract()
+		Local o:ScriptObject = Self.parseAddSubtract()
 
-		If Self._tokeniser.IsRelationalOperator() Then
+		If Self._tokeniser.isRelationalOperator() Then
 
 			Local op:Int = Self._tokeniser.CurrentToken
 			Self._tokeniser.GetNextToken()
@@ -255,51 +254,49 @@ Type ExpressionEvaluator
 
 	Method parseAddSubtract:ScriptObject()
 
-		Local p0:Int	= Self._tokeniser.CurrentPosition
-		Local o:ScriptObject	= Self.ParseMulDiv()
-		Local o2:ScriptObject
-		Local p3:Int
+		Local leftSide:ScriptObject  = Self.parseMulDiv()
+		Local rightSide:ScriptObject = Null
 
-		While(True)
+		While True
+			Select Self._tokeniser.currentToken
 
-			If Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_PLUS Then
+				Case ExpressionTokeniser.TOKEN_PLUS
 
-				Self._tokeniser.GetNextToken()
-				o2:ScriptObject		= Self.ParseMulDiv()
-				p3		= Self._tokeniser.CurrentPosition
+					' Get the next item to add.
+					Self._tokeniser.getNextToken()
+					rightSide = Self.parseMulDiv()
 
-				If Self._evalMode <> MODE_PARSE_ONLY Then
+					If Self._evalMode <> MODE_PARSE_ONLY Then
+						If ScriptObject.canAdd(leftSide, rightSide) Then
+							leftSide = ScriptObject.AddObjects(leftSide, rightSide)
+						Else
+							RuntimeError("Can't ADD")
+						EndIf
 
-					If ScriptObject.CanAdd(o, o2) Then
-						o = ScriptObject.AddObjects(o, o2)
-					Else
-						RuntimeError("Can't ADD")
 					EndIf
 
-				EndIf
+				Case ExpressionTokeniser.TOKEN_MINUS
 
-			ElseIf Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_MINUS Then
+					Self._tokeniser.GetNextToken()
+					rightSide = self.parseMulDiv()
 
-				Self._tokeniser.GetNextToken()
-				o2:ScriptObject		= Self.ParseMulDiv()
-				p3		= Self._tokeniser.CurrentPosition
+					If Self._evalMode <> MODE_PARSE_ONLY Then
+						If ScriptObject.canAdd(leftSide, rightSide) Then
+							leftSide = ScriptObject.SubtractObjects(leftSide, rightSide)
+						Else
+							RuntimeError("Can't SUBTRACT")
+						EndIf
 
-				If Self._evalMode <> MODE_PARSE_ONLY Then
-					If ScriptObject.CanAdd(o, o2) Then
-						o = ScriptObject.SubtractObjects(o, o2)
-					Else
-						RuntimeError("Can't SUBTRACT")
 					EndIf
 
-				EndIf
+				Default
+					Exit
 
-			Else
-				Exit
-			EndIf
+			End select
 
 		Wend
 
-		Return o
+		Return leftSide
 
 	End Method
 
@@ -517,8 +514,8 @@ Type ExpressionEvaluator
 			'this\_tokeniser\IgnoreWhitespace = False
 			Self._tokeniser.GetNextToken()
 
-			Local args:TList	= New TList
-			Local isFunction:Int	= False
+			Local args:TList      = New TList
+			Local isFunction:Byte = False
 
 			' Get the current property or function name
 			If Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_DOUBLE_COLON Then
@@ -633,9 +630,9 @@ Type ExpressionEvaluator
 			' Either run a function or get a property value
 			If self._evalMode <> MODE_PARSE_ONLY Then
 				If isFunction
-					Return Self.EvaluateFunction(functionOrPropertyName, args)
+					Return Self.evaluateFunction(functionOrPropertyName, args)
 				Else
-					Return Self.EvaluateProperty(functionOrPropertyName)
+					Return Self.evaluateProperty(functionOrPropertyName)
 				EndIf
 			Else
 				' Return nothing if we're just checking syntax
@@ -652,11 +649,11 @@ Type ExpressionEvaluator
 
 		' Get the function object
 		' TODO: Extract this to `getFunction`
-		Local func:ScriptFunction = Scriptfunction(Self._registeredFunctions.ValueForKey(functionName))
+		Local func:SimpleExpressions_Function = Self.getFunction(functionName)
 		If func = Null Then Throw "No handler found for function '" + functionName + "'"
 
 		' TODO: Don't need to call this __invoke
-		Return func.__invoke(argList)
+		Return func.execute(argList)
 
 	End Method
 
@@ -670,8 +667,12 @@ Type ExpressionEvaluator
 	' -- Internal script stuff
 	' ------------------------------------------------------------
 
+	Method getFunction:SimpleExpressions_Function(name:String)
+		Return SimpleExpressions_Function(Self._registeredFunctions.valueForKey(name))
+	End Method
+	
 	Method _countFunctionParameters:Int(functionName:String)
-		Local func:ScriptFunction = scriptfunction(Self._registeredFunctions.ValueForKey(functionName))
+		Local func:SimpleExpressions_Function = SimpleExpressions_Function(Self._registeredFunctions.ValueForKey(functionName))
 		If func = Null Then Throw "No handler found for function '" + functionName + "'"
 
 		Return func.countFunctionParameters()
@@ -689,7 +690,7 @@ Type ExpressionEvaluator
 		For Local setType:TTypeId = EachIn base.DerivedTypes()
 
 			' Create a function set
-			Local set:FunctionSet	= FunctionSet(setType.NewObject())
+			Local set:FunctionSet = FunctionSet(setType.NewObject())
 
 			' Setup args
 			Self.RegisterFunctionSet(set)

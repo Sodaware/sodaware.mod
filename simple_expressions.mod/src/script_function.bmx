@@ -19,11 +19,12 @@ Import "script_object.bmx"
 Import "function_set.bmx"
 
 
-Type ScriptFunction
+Type SimpleExpressions_Function
 
 	Field _fullName:String
 	Field _parentSet:FunctionSet
 	Field _method:TMethod
+	Field _parameterCount:Int
 
 
 	' ------------------------------------------------------------
@@ -43,7 +44,9 @@ Type ScriptFunction
 	End Method
 
 	Method countFunctionParameters:Int()
-		Return Self._method.ArgTypes().Length
+		If Self._Method Then return Self._method.ArgTypes().Length
+
+		Return Self._parameterCount
 	End Method
 
 
@@ -51,8 +54,8 @@ Type ScriptFunction
 	' -- Exectution
 	' ------------------------------------------------------------
 
-	Method execute:ScriptObject()
-		Return ScriptObjectFactory.NewInt(20)
+	Method execute:ScriptObject(argList:TList)
+		Return Self.__invoke(argList)
 	End Method
 
 	Method __invoke:ScriptObject(argList:TList)
@@ -65,8 +68,8 @@ Type ScriptFunction
 	' -- Creation
 	' ------------------------------------------------------------
 
-	Function Create:ScriptFunction(set:FunctionSet, handler:TMethod)
-		Local this:ScriptFunction = New ScriptFunction
+	Function Create:SimpleExpressions_Function(set:FunctionSet, handler:TMethod)
+		Local this:SimpleExpressions_Function = New SimpleExpressions_Function
 
 		this._parentSet = set
 		this._method    = handler
