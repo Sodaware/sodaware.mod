@@ -326,8 +326,7 @@ Type ExpressionTokeniser
 	End Method
 
 	''' <summary>Moves to the next character in the expression and returns its ascii value.</summary>
-	Method _readChar:Int()
-
+	Method _readChar:Byte()
 		Local charValue:Int = Self._peekChar()
 
 		Self.CurrentPosition:+ 1
@@ -346,12 +345,11 @@ Type ExpressionTokeniser
 
 	''' <summary>Reads all whitespace characters until the next non-whitespace character.</summary>
 	Method _skipWhitespace()
-
-		While (Self._peekChar()) <> -1
-			If CharHelper.IsWhitespace(Chr(Self._peekChar())) = False Then Return
+		Local currentChar:Byte = Self._peekChar()
+		While currentChar > 0 And currentChar <= 32
 			Self._readChar()
+			currentChar = Self._peekChar()
 		Wend
-
 	End Method
 
 
