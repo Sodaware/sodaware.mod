@@ -9,6 +9,12 @@ New TTestSuite.run()
 
 Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 
+	Field _evaluator:ExpressionEvaluator
+
+	Method setUp() { before }
+		Self._evaluator = New ExpressionEvaluator
+	End Method
+
 	' ------------------------------------------------------------
 	' -- Evaluation Tests
 	' ------------------------------------------------------------
@@ -26,6 +32,32 @@ Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 			Self.assertEquals("Syntax error in expression: + ~q" + "(10 + 4) / " + "~q", e.ToString(), "Must throw exception if expression is invalid")
 		End Try
 
+	End Method
+
+
+	' ------------------------------------------------------------
+	' -- Interpolation Tests
+	' ------------------------------------------------------------
+
+	Method testInterpolateDoesNotProcessEmptyString() { test }
+		Self.assertEquals("", Self._evaluator.interpolate(""))
+	End Method
+
+	Method testInterpolateDoesNotProcessStringWithoutExpressions() { test }
+		Self.assertEquals("hello there", Self._evaluator.interpolate("hello there"))
+		Self.assertEquals("1 + 1", Self._evaluator.interpolate("1 + 1"))
+	End Method
+
+	Method testInterpolateProcessesSingleString() { test }
+		Self.assertEquals("2", Self._evaluator.interpolate("${1 + 1}"))
+	End Method
+
+	Method testInterpolateProcessesMultipleStrings() { test }
+		Self.assertEquals("2 > 1", Self._evaluator.interpolate("${1 + 1} > ${2 - 1}"))
+	End Method
+
+	Method testInterpolateIgnoresWhitespace() { test }
+		Self.assertEquals("2", Self._evaluator.interpolate("${   1 + 1   }"))
 	End Method
 
 
@@ -68,22 +100,40 @@ Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 
 
 	' ------------------------------------------------------------
+	' -- Logic Tests
+	' ------------------------------------------------------------
+
+	Method testOrReturnsCorrectResultForSimpleBooleans() { test }
+		Self._testExpressionBool(True, "true or true")
+		Self._testExpressionBool(True, "true or false")
+		Self._testExpressionBool(True, "false or true")
+		Self._testExpressionBool(False, "false or false")
+	End Method
+
+	Method testAndReturnsCorrectResultForSimpleBooleans() { test }
+		Self._testExpressionBool(True, "true and true")
+		Self._testExpressionBool(False, "true and false")
+		Self._testExpressionBool(False, "false and true")
+		Self._testExpressionBool(False, "false and false")
+	End Method
+
+	' ------------------------------------------------------------
 	' -- Custom Function Tests
 	' ------------------------------------------------------------
 
 	' TODO: Test that functions can be registered.
 
 	Method testCustomScriptFunctionsCanBeCalled() { test }
-		Local eval:ExpressionEvaluator = ExpressionEvaluator.Create("test::simple-function()")
+		Local eval:ExpressionEvaluator = New ExpressionEvaluator
 		eval.registerFunction(New FunctionTest)
-		Local res:ScriptObject = eval.evaluate()
+		Local res:ScriptObject = eval.evaluate("test::simple-function()")
 		Self.assertEqualsI(20, res.ValueInt())
 	End Method
 
 	Method testCustomScriptFunctionsCanEvaluateParameters() { test }
-		Local eval:ExpressionEvaluator = ExpressionEvaluator.Create("test::add(1 + 1, 2 + 2)")
+		Local eval:ExpressionEvaluator = New ExpressionEvaluator
 		eval.registerFunction(New AddFunctionTest)
-		Local res:ScriptObject = eval.evaluate()
+		Local res:ScriptObject = eval.evaluate("test::add(1 + 1, 2 + 2)")
 		Self.assertEqualsI(6, res.ValueInt())
 	End Method
 
@@ -93,17 +143,17 @@ Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 	' ------------------------------------------------------------
 
 	Method testCanReplaceSingleProperty() { test }
-		Local eval:ExpressionEvaluator = ExpressionEvaluator.Create("myProp" )
+		Local eval:ExpressionEvaluator = New ExpressionEvaluator
 		eval.RegisterStringProperty("myProp", "hello")
-		Local res:ScriptObject = eval.Evaluate()
+		Local res:ScriptObject = eval.Evaluate("myProp")
 		Self.assertEquals("hello", res.ValueString())
 	End Method
 
 	Method testCanAddProperties() { test }
-		Local eval:ExpressionEvaluator = ExpressionEvaluator.Create("myProp + ' there!' + (2 + some_number)" )
+		Local eval:ExpressionEvaluator = New ExpressionEvaluator
 		eval.RegisterStringProperty("myProp", "hello")
 		eval.RegisterIntProperty("some_number", 12)
-		Local res:ScriptObject = eval.Evaluate()
+		Local res:ScriptObject = eval.evaluate("myProp + ' there!' + (2 + some_number)")
 		Self.assertEquals("hello there!14", res.ValueString())
 	End Method
 
@@ -114,16 +164,31 @@ Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 
 	' Internal helper - test an expression evaluations to a specific integer value
 	Method _testExpressionI(expected:Int, expression:String, message:String = "")
-		Local eval:ExpressionEvaluator = ExpressionEvaluator.Create(expression)
-		Local res:ScriptObject = eval.Evaluate()
+		Local eval:ExpressionEvaluator = New ExpressionEvaluator
+		Local res:ScriptObject = eval.Evaluate(expression)
 		Self.assertEqualsI(expected, res.ValueInt(), message)
 	End Method
 
 	' Internal helper - test an expression evaluations to a specific string
 	Method _testExpression(expected:String, expression:String, message:String = "")
-		Local eval:ExpressionEvaluator = ExpressionEvaluator.Create(expression)
-		Local res:ScriptObject = eval.Evaluate()
+		Local eval:ExpressionEvaluator = New ExpressionEvaluator
+		Local res:ScriptObject = eval.Evaluate(expression)
 		Self.assertEquals(expected, res.ValueString(), message)
+	End Method
+
+	' Internal helper - test an expression evaluations to a boolean
+	Method _testExpressionBool(expected:Byte, expression:String, message:String = "")
+		Local eval:ExpressionEvaluator = New ExpressionEvaluator
+		Local res:ScriptObject = eval.Evaluate(expression)
+
+		If message = "" Then message = "`" + expression + "`"
+
+		If expected Then
+			self.assertTrue(res.valueBool(), message)
+		Else
+			self.assertFalse(res.valueBool(), message)
+		EndIf
+
 	End Method
 
 End Type

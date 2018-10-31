@@ -34,6 +34,14 @@ Type ScriptObject
 	' -- Fetcing Values
 	' ------------------------------------------------------------
 
+	Method valueBool:Byte()
+		Local val:String = Self._value.ToString().toLower()
+		If val = 0 Then Return False
+		If val = "false" Then Return False
+
+		Return True
+	End Method
+
 	Method valueInt:Int()
 		Return Int(Self._value.ToString())
 	End Method
@@ -46,21 +54,45 @@ Type ScriptObject
 		Return Self._value.ToString()
 	End Method
 
-	Method ToString:String()
+	Method toString:String()
 		Return Self.valueString()
 	End Method
 
-	' TODO: Refactor these to remove bad conversions
+	' Debug only!
+	Method dump:String()
+		Return "<" + Self.objectTypeToString() + "> " + Self.valueString()
+	End Method
+
+	Method objectTypeToString:String()
+		Select Self._Type
+			Case OBJECT_INT
+				Return "Int"
+
+			Case OBJECT_FLOAT
+				Return "Float"
+
+			Case OBJECT_STRING
+				Return "String"
+
+			Case OBJECT_BOOL
+				Return "Bool"
+
+			Default
+				Return "UNKNOWN"
+
+		End Select
+	End Method
+
 	Function AddObjects:ScriptObject(o1:ScriptObject, o2:ScriptObject)
 
-		' Can always add strings
+		' Can always add strings.
 		If o1._type = OBJECT_STRING Or o2._type = OBJECT_STRING Then
-			Return ScriptObjectFactory.NewString(o1.ValueString() + o2.ValueString())
+			Return ScriptObjectFactory.NewString(o1.valueString() + o2.valueString())
 		EndIf
 
 		' Adding ints
 		If o1._type = OBJECT_INT And o1._type = OBJECT_INT Then
-			Return ScriptObjectFactory.newint(Int(o1._value.ToString()) + Int(o2._value.ToString()))
+			Return ScriptObjectFactory.NewInt(o1.valueInt() + o2.valueInt())
 		End If
 
 		' Adding floats
@@ -68,7 +100,7 @@ Type ScriptObject
 			Return ScriptObjectFactory.NewFloat(Float(o1._value.ToString()) + Float(o2._value.ToString()))
 		End If
 
-		' Adding mixed floats
+		' Adding mixed floats.
 		If o1._type = OBJECT_FLOAT Or o1._type = OBJECT_FLOAT Then
 			Return ScriptObjectFactory.NewFloat(Float(o1._value.ToString()) + Float(o2._value.ToString()))
 		End If
@@ -163,12 +195,15 @@ Type ScriptObject
 
 	End Function
 
+	' Can add:
+	' Same types
+	' float to int/vice versa
+	' String to anything
 	Function CanAdd:Int(o1:ScriptObject, o2:ScriptObject)
 
-		' Easy
 		If o1._type = o2._type Then Return True
 		If o1._type + o2._type = 3 Then Return True
-		If o1._type Or o2._type = OBJECT_STRING Then Return True
+		If o1._type = Object_String Or o2._type = OBJECT_STRING Then Return True
 
 		' Can't add
 		Return False

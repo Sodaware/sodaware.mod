@@ -53,13 +53,26 @@ Type ExpressionTokeniser
 	Field ignoreWhitespace:Byte         '''< Is whitespace ignored?
 	Field singleCharacterMode:Byte      '''< Is every single char treated as a token?
 
-	' -- Current Token info
+	' -- Current token info.
 	Field currentToken:Byte             '''< Const TokenType for current token
 	Field tokenText:String              '''< Text of the current token
 	Field currentPosition:Int           '''< Current position within the expression
 
-	' -- Internal fields
+	' -- Internal fields.
 	Field _expressionText:String        '''< The full text of the expression
+
+
+	' ------------------------------------------------------------
+	' -- Configuring
+	' ------------------------------------------------------------
+
+	''' <summary>Set the expression to be tokenised.</summary>
+	''' <param name="expression">The expression to tokenise.</param>
+	Method setExpression(expression:String)
+		Self._expressionText = expression
+		Self.currentPosition = 0
+		Self.currentToken    = TOKEN_BOF
+	End Method
 
 
 	' ------------------------------------------------------------
@@ -76,13 +89,16 @@ Type ExpressionTokeniser
 	' ------------------------------------------------------------
 
 	''' <summary>Move the to the next token and return it.</summary>
-	Method getNextToken:Int()
+	Method getNextToken:Byte()
+
+		' TODO: Cache the next character (via peekChar)? It's used a lot
 
 		' TODO: Should this really throw an error?
 		If self.currentToken = TOKEN_EOF Then
 			Throw "End of file reached"
 		EndIf
 
+		' Skip whitespace characters if they're being ignored.
 		If self.ignoreWhitespace Then
 			Self._skipWhitespace()
 		EndIf
@@ -96,6 +112,7 @@ Type ExpressionTokeniser
 		' Get next character
 		Local char:String = Chr(Self._readChar())
 
+		' TODO: Is single character mode something anyone will actually use?
 		If self.singleCharacterMode = False Then
 
 			If Self.ignoreWhitespace = False And CharHelper.IsWhitespace(char) Then
@@ -124,9 +141,10 @@ Type ExpressionTokeniser
 			' Read numbers
 			If CharHelper.IsDigit(char) Then
 
-				self.CurrentToken = TOKEN_NUMBER
-				Local s:String = char
+				Self.currentToken = TOKEN_NUMBER
 
+				' Read the number.
+				Local s:String = char
 
 				While Self._peekChar() <> 0
 					char = Chr(Self._peekChar())
@@ -136,10 +154,10 @@ Type ExpressionTokeniser
 					Else
 						Exit
 					EndIf
-
 				Wend
 
-				self.TokenText	= s
+				self.tokenText = s
+
 				Return 0
 
 			EndIf
@@ -153,11 +171,12 @@ Type ExpressionTokeniser
 			' Read keywords
 			If char = "_" Or CharHelper.IsLetter(char) Then
 
-				self.CurrentToken	= TOKEN_KEYWORD
+				self.currentToken = TOKEN_KEYWORD
 				Local s:String = char
 
 				While Self._peekChar() <> 0
 
+					' TODO: This is ugly. Fix it.
 					If (Chr(Self._peekChar()) = "_" Or Chr(Self._peekChar()) = "-" Or CharHelper.IsLetterOrDigit(Chr(Self._peekChar()))) Then
 						s = s + Chr(Self._readChar())
 					Else
@@ -232,7 +251,7 @@ Type ExpressionTokeniser
 
 		' Convert token types
 		If Asc(char) >= 32 And Asc(char) <= 128 Then
-			Self.CurrentToken	= ExpressionTokeniser.CharToToken(char)
+			Self.CurrentToken = ExpressionTokeniser.CharToToken(char)
 		EndIf
 
 
@@ -242,7 +261,7 @@ Type ExpressionTokeniser
 	''' <param name="word">The word to check against.</param>
 	''' <returns>True if a keyword, false if not.</returns>
 	Method isKeyword:Int(word:String)
-		Return (self.CurrentToken = TOKEN_KEYWORD) And (self.TokenText = word)
+		Return (self.CurrentToken = TOKEN_KEYWORD And self.TokenText = word)
 	End Method
 
 	Method isRelationalOperator:Byte()
@@ -298,13 +317,14 @@ Type ExpressionTokeniser
 	' -- Internal tokenising methods
 	' ------------------------------------------------------------
 
+	Method _setCurrentToken(tokenType:Byte, tokenText:String)
+		Self.currentToken = tokenType
+		Self.tokenText    = tokenText
+	End Method
+
 	Method _readString:String()
-
-		Local s:String	= ""
-		Local i:Int	= 0
-		Local char:String	= Chr(Self._peekChar())
-
-		self.CurrentToken	= TOKEN_STRING
+		Local s:String    = ""
+		Local char:String = Chr(Self._peekChar())
 
 		While Self._peekChar() <> 0
 			char = Chr(Self._peekChar())
@@ -314,12 +334,11 @@ Type ExpressionTokeniser
 				Self._readChar()
 				Exit
 			Else
-				s = s + Chr(Self._readChar())
+				s :+ Chr(Self._readChar())
 			EndIf
-
 		Wend
 
-		self.TokenText	= s
+		Self._setCurrentToken(TOKEN_STRING, s)
 
 		Return s
 
@@ -357,6 +376,16 @@ Type ExpressionTokeniser
 		Wend
 	End Method
 
+	Method reset()
+
+		' Setup rules.
+		Self.ignoreWhitespace    = True
+		Self.singleCharacterMode = False
+
+		' Start tokenising
+		Self.getNextToken()
+
+	End Method
 
 	' ------------------------------------------------------------
 	' -- Creation and Destruction
@@ -366,16 +395,9 @@ Type ExpressionTokeniser
 
 		Local this:ExpressionTokeniser = New ExpressionTokeniser
 
-		' Initialise
-		this._expressionText     = expression
-		this.currentPosition     = 0
-		this.currentToken        = TOKEN_BOF
-
-		this.ignoreWhitespace    = True
-		this.singleCharacterMode = False
-
-		' Start tokenising
-		this.getNextToken()
+		' Initialise expression.
+		this.setExpression(expression)
+		this.reset()
 
 		Return this
 

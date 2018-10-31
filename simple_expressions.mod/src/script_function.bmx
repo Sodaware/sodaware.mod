@@ -22,6 +22,7 @@ Import "function_set.bmx"
 Type SimpleExpressions_Function
 
 	Field _fullName:String
+	' TODO: Replace FunctionSet with a generic object.
 	Field _parentSet:FunctionSet
 	Field _method:TMethod
 	Field _parameterCount:Int
@@ -43,6 +44,7 @@ Type SimpleExpressions_Function
 
 	End Method
 
+	' TODO: Cache this value.
 	Method countFunctionParameters:Int()
 		If Self._Method Then return Self._method.ArgTypes().Length
 
