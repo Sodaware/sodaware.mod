@@ -129,7 +129,7 @@ Type ExpressionEvaluator
 
 		' TODO: Wrap this in `tokeniser.isEof`
 		If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_EOF Then
-			Throw("Unexpected Char at end of expression: " + Self._tokeniser.CurrentToken)
+			Throw("Unexpected Char at end of expression: " + Self._tokeniser.currentToken)
 		EndIf
 
 		Return result
@@ -187,36 +187,28 @@ Type ExpressionEvaluator
 
 	' TODO: Should this be called `evaluateBooleanOr`?
 	Method parseBooleanOr:ScriptObject()
-		Local o1:ScriptObject = Self.parseBooleanAnd()
+		Local leftSide:ScriptObject = Self.parseBooleanAnd()
 
 		While Self._tokeniser.isKeyword("or")
 
-			' Get the left hand side.
-			Local v1:ScriptObject = ScriptObjectFactory.NewBool(True)
-
 			If Self._evalMode <> MODE_PARSE_ONLY Then
-
 				' If true, we're done (because it's an or)
-				v1 = o1
-				If Int(v1.ToString()) Then
+				If leftSide.valueBool() Then
 					Self._evalMode = MODE_PARSE_ONLY
 				EndIf
-
 			EndIf
 
 			' Right hand side
 			Self._tokeniser.getNextToken()
-			Local o2:ScriptObject		= Self.ParseBooleanAnd()
+			Local rightSide:ScriptObject = self.parseBooleanAnd()
 
 			If Self._evalMode <> MODE_PARSE_ONLY Then
-				Local v2:ScriptObject = o2
-				' TODO: Wrap this in a helper called `compareValues`
-				o1 = ScriptObjectFactory.NewBool(Int(v1.ToString()) Or Int(v2.ToString()))
+				leftSide = ScriptObjectFactory.NewBool(leftSide.valueBool() Or rightSide.valueBool())
 			EndIf
 
 		Wend
 
-		Return o1
+		Return leftSide
 
 	End Method
 
@@ -248,44 +240,46 @@ Type ExpressionEvaluator
 
 	Method parseRelationalExpression:ScriptObject()
 
-		Local o:ScriptObject = Self.parseAddSubtract()
+		Local leftSide:ScriptObject = Self.parseAddSubtract()
 
 		If Self._tokeniser.isRelationalOperator() Then
 
 			Local op:Byte = Self._tokeniser.currentToken
 			Self._tokeniser.getNextToken()
 
-			Local o2:ScriptObject = Self.parseAddSubtract()
+			Local rightSide:ScriptObject = Self.parseAddSubtract()
 
 			If Self._evalMode = MODE_PARSE_ONLY Then Return Null
 
-			' TODO: Replace int casting with value numeric?
+			' TODO: Needs to support comparing strings, numbers and booleans.
+			' TODO: Replace int casting with valueNumeric?
+			' TODO: I don't think these work :)
 			Select op
 
 				' Equals operator
 				Case ExpressionTokeniser.TOKEN_EQUAL
-					Return ScriptObjectFactory.NewBool(o = o2)
+					Return ScriptObjectFactory.NewBool(leftSide = rightSide)
 
 				Case ExpressionTokeniser.TOKEN_NOT_EQUAL
-					Return ScriptObjectFactory.NewBool(o <> o2)
+					Return ScriptObjectFactory.NewBool(leftSide <> rightSide)
 
 				Case ExpressionTokeniser.TOKEN_LT
-					Return ScriptObjectFactory.NewBool(Int(o.ToString()) < Int(o2.ToString()))
+					Return ScriptObjectFactory.NewBool(Int(leftSide.ToString()) < Int(rightSide.ToString()))
 
 				Case ExpressionTokeniser.TOKEN_GT
-					Return ScriptObjectFactory.NewBool(Int(o.ToString()) > Int(o2.ToString()))
+					Return ScriptObjectFactory.NewBool(Int(leftSide.ToString()) > Int(rightSide.ToString()))
 
 				Case ExpressionTokeniser.TOKEN_LE
-					Return ScriptObjectFactory.NewBool(Int(o.ToString()) <= Int(o2.ToString()))
+					Return ScriptObjectFactory.NewBool(Int(leftSide.ToString()) <= Int(rightSide.ToString()))
 
 				Case ExpressionTokeniser.TOKEN_GE
-					Return ScriptObjectFactory.NewBool(Int(o.ToString()) >= Int(o2.ToString()))
+					Return ScriptObjectFactory.NewBool(Int(leftSide.ToString()) >= Int(rightSide.ToString()))
 
 			End Select
 
 		EndIf
 
-		Return o
+		Return leftSide
 
 	End Method
 
@@ -314,7 +308,7 @@ Type ExpressionEvaluator
 
 				Case ExpressionTokeniser.TOKEN_MINUS
 
-					Self._tokeniser.GetNextToken()
+					Self._tokeniser.getNextToken()
 					rightSide = self.parseMulDiv()
 
 					If Self._evalMode <> MODE_PARSE_ONLY Then
@@ -347,7 +341,7 @@ Type ExpressionEvaluator
 			Select Self._tokeniser.currentToken
 
 				Case ExpressionTokeniser.TOKEN_MUL
-					Self._tokeniser.GetNextToken()
+					Self._tokeniser.getNextToken()
 					rightSide = Self.parseValue()
 
 					If Self._evalMode <> MODE_PARSE_ONLY Then
@@ -401,56 +395,56 @@ Type ExpressionEvaluator
 		Return Null
 	End Method
 
-	' TODO: This is ugly'
+	' TODO: This is ugly.
 	Method parseValue:ScriptObject()
 
 		' -- Setup
 		Local val:ScriptObject
 
-		' -- In a string.
-		If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_STRING Then
-			val = ScriptObjectFactory.NewString(Self._tokeniser.tokenText)
-			Self._tokeniser.getNextToken()
-			Return val
-		EndIf
+		Select Self._tokeniser.currentToken
 
-		' -- Plain number values
-		If Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_NUMBER Then
+			' In a string.
+			Case ExpressionTokeniser.TOKEN_STRING
+				val = ScriptObjectFactory.NewString(Self._tokeniser.tokenText)
+				Self._tokeniser.getNextToken()
+				Return val
 
-			Local number:String = Self._tokeniser.TokenText
+			' Plain number
+			Case ExpressionTokeniser.TOKEN_NUMBER
+				Local number:String = Self._tokeniser.tokenText
 
-			Self._tokeniser.GetNextToken()
+				Self._tokeniser.getNextToken()
 
-			' Check for fractions
-			If Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_DOT Then
-				number = number + "."
-				Self._tokeniser.GetNextToken()
+				' Check for fractions
+				If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_DOT Then
+					number = number + "."
+					Self._tokeniser.getNextToken()
 
-				' Check there's a number after the decimal point
-				If Self._tokeniser.CurrentToken <> ExpressionTokeniser.TOKEN_NUMBER Then
-					Self._throwSyntaxError()
-				EndIf
+					' Check there's a number after the decimal point
+					If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_NUMBER Then
+						Self._throwSyntaxError()
+					EndIf
 
-				number = number + Self._tokeniser.TokenText
+					number = number + Self._tokeniser.tokenText
 
-				Self._tokeniser.GetNextToken()
+					Self._tokeniser.getNextToken()
 
-				' Check for error
+					' Check for error
 
-				' Done
-				Return ScriptObjectFactory.NewFloat(Float(number))
+					' Done
+					Return ScriptObjectFactory.NewFloat(Float(number))
 
-			' Integer
-			Else
-				Return ScriptObjectFactory.NewInt(Int(number))
-			EndIf
+					' Integer
+				Else
+					Return ScriptObjectFactory.NewInt(Int(number))
+				EndIf			
 
-		EndIf
+		End Select
 
 		' -- Negative numbers
-		If Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_MINUS Then
+		If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_MINUS Then
 
-			Self._tokeniser.GetNextToken()
+			Self._tokeniser.getNextToken()
 
 			' Unary minus
 			val	= Self.parseValue()
@@ -489,24 +483,24 @@ Type ExpressionEvaluator
 		EndIf
 
 		' Brackets.
-		If Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_LEFT_PAREN Then
+		If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_LEFT_PAREN Then
 
 			Self._tokeniser.getNextToken()
 
 			val	= Self.ParseExpression()
 
-			If Self._tokeniser.CurrentToken <> ExpressionTokeniser.TOKEN_RIGHT_PAREN Then
+			If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_RIGHT_PAREN Then
 				' Throw error
-				RuntimeError("')' expected at " + self._tokeniser.CurrentPosition)
+				RuntimeError("')' expected at " + self._tokeniser.currentPosition)
 			EndIf
 
-			Self._tokeniser.GetNextToken()
+			Self._tokeniser.getNextToken()
 			Return val
 
 		EndIf
 
 		' Keywords (big chunk of code)
-		If Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_KEYWORD Then
+		If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_KEYWORD Then
 
 			Local functionOrPropertyName:String = Self._tokeniser.tokenText
 
@@ -535,29 +529,31 @@ Type ExpressionEvaluator
 			Local args:TList      = New TList
 			Local isFunction:Byte = False
 
+			' TODO: Shouldn't require the double colon for property or function names.
+
 			' Get the current property or function name
-			If Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_DOUBLE_COLON Then
+			If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_DOUBLE_COLON Then
 
 				' Function
 				isFunction = True
 				functionOrPropertyName = functionOrPropertyName + "::"
-				Self._tokeniser.GetNextToken()
+				Self._tokeniser.getNextToken()
 
 				' Check the :: is followed by a keyword
-				If Self._tokeniser.CurrentToken <> ExpressionTokeniser.TOKEN_KEYWORD Then
+				If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_KEYWORD Then
 					RuntimeError("Function name expected")
 				EndIf
 
-				functionOrPropertyName = functionOrPropertyName + Self._tokeniser.TokenText
-				Self._tokeniser.GetNextToken()
+				functionOrPropertyName = functionOrPropertyName + Self._tokeniser.tokenText
+				Self._tokeniser.getNextToken()
 
 			Else
 
 				' Property
 				' TODO: This is so ugly it hurts. Fix it.
-				While(Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_DOT Or Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_MINUS Or Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_KEYWORD Or Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_NUMBER)
-					functionOrPropertyName = functionOrPropertyName + Self._tokeniser.TokenText
-					Self._tokeniser.GetNextToken()
+				While(Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_DOT Or Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_MINUS Or Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_KEYWORD Or Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_NUMBER)
+					functionOrPropertyName = functionOrPropertyName + Self._tokeniser.tokenText
+					Self._tokeniser.getNextToken()
 				Wend
 
 			EndIf
@@ -566,8 +562,8 @@ Type ExpressionEvaluator
 			Self._tokeniser.IgnoreWhitespace = True
 
 			' If we're at a space, get the next token
-			If Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_WHITESPACE Then
-				Self._tokeniser.GetNextToken()
+			If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_WHITESPACE Then
+				Self._tokeniser.getNextToken()
 			EndIf
 
 			' -- Execute the function
@@ -576,20 +572,15 @@ Type ExpressionEvaluator
 			If isFunction Then
 
 				' Check for opening bracket (for params)
-				If Self._tokeniser.CurrentToken <> ExpressionTokeniser.TOKEN_LeFT_PAREN Then
-					RuntimeError("'(' expected at " + self._tokeniser.CurrentPosition)
+				If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_LeFT_PAREN Then
+					RuntimeError("'(' expected at " + self._tokeniser.currentPosition)
 				EndIf
 
-				Self._tokeniser.GetNextToken()
+				Self._tokeniser.getNextToken()
 
 				' TODO: Fix function arguments
-				Local currentArgument:Int			= 0
-				Local parameterCount:Int		= Self._countFunctionParameters(functionOrPropertyName)
-
-				' TODO: Replace with proper bug checking
-'				If formalParameters = Null Then
-'					RuntimeError("Function '" + functionOrPropertyName + "' not found")
-'				EndIf
+				Local currentArgument:Int = 0
+				Local parameterCount:Int  = Self._countFunctionParameters(functionOrPropertyName)
 
 				While (Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_RIGHT_PAREN And Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_EOF)
 
@@ -620,16 +611,16 @@ Type ExpressionEvaluator
 					EndIf
 
 					' Check if we're at the end
-					If Self._tokeniser.CurrentToken = ExpressionTokeniser.TOKEN_RIGHT_PAREN Then
+					If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_RIGHT_PAREN Then
 						Exit
 					EndIf
 
 					' Check if there was no comma (syntax error)
-					If Self._tokeniser.CurrentToken <> ExpressionTokeniser.TOKEN_COMMA Then
-						RuntimeError("',' expected at " + Self._tokeniser.CurrentPosition + " -- found " + Self._tokeniser.CurrentToken)
+					If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_COMMA Then
+						RuntimeError("',' expected at " + Self._tokeniser.currentPosition + " -- found " + Self._tokeniser.currentToken)
 					EndIf
 
-					Self._tokeniser.GetNextToken()
+					Self._tokeniser.getNextToken()
 
 				Wend
 
@@ -648,15 +639,12 @@ Type ExpressionEvaluator
 			EndIf
 
 			' Either run a function or get a property value
-			If self._evalMode <> MODE_PARSE_ONLY Then
-				If isFunction
-					Return Self.evaluateFunction(functionOrPropertyName, args)
-				Else
-					Return Self.evaluateProperty(functionOrPropertyName)
-				EndIf
+			If self._evalMode = MODE_PARSE_ONLY Then Return Null
+
+			If isFunction
+				Return Self.evaluateFunction(functionOrPropertyName, args)
 			Else
-				' Return nothing if we're just checking syntax
-				Return Null
+				Return Self.evaluateProperty(functionOrPropertyName)
 			EndIf
 
 		EndIf
@@ -671,7 +659,6 @@ Type ExpressionEvaluator
 
 		' TODO: Throw a proper exception here.
 		If func = Null Then Throw "No handler found for function '" + functionName + "'"
-
 		Return func.execute(argList)
 	End Method
 
@@ -694,9 +681,7 @@ Type ExpressionEvaluator
 	End Method
 
 	Method _countFunctionParameters:Int(functionName:String)
-		Local func:SimpleExpressions_Function = SimpleExpressions_Function(Self._registeredFunctions.ValueForKey(functionName))
-		If func = Null Then Throw "No handler found for function '" + functionName + "'"
-
+		Local func:SimpleExpressions_Function = Self.getFunction(functionName)
 		Return func.countFunctionParameters()
 	End Method
 
