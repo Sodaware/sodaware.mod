@@ -95,6 +95,7 @@ Type ExpressionEvaluator
 	End Method
 
 	Method setExpression(expression:String)
+		Self._evalMode = MODE_EVALUATE
 		Self._tokeniser.setExpression(expression)
 		Self._tokeniser.reset()
 	End Method
