@@ -477,22 +477,7 @@ Type ExpressionEvaluator
 
 		' Keywords (big chunk of code)
 		If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_KEYWORD Then
-
 			Local functionOrPropertyName:String = Self._tokeniser.tokenText
-
-			' TODO: Add false + true as properties?
-			' Built-in keywords.
-			Select Lower(functionOrPropertyName)
-
-				Case "true"
-					Self._tokeniser.getNextToken()
-					Return ScriptObjectFactory.NewBool(True)
-
-				Case "false"
-					Self._tokeniser.getNextToken()
-					return ScriptObjectFactory.NewBool(False)
-
-			End Select
 
 			' Something different - possibly a function name or a property.
 
@@ -520,7 +505,7 @@ Type ExpressionEvaluator
 				functionOrPropertyName = functionOrPropertyName + Self._tokeniser.tokenText
 				Self._tokeniser.getNextToken()
 
-			Else
+			ElseIf Not CharHelper.isAsciiWhitespace(Self._tokeniser.currentToken) Then
 
 				' Property
 				' TODO: This is so ugly it hurts. Fix it.
@@ -715,6 +700,17 @@ Type ExpressionEvaluator
 		Self._registeredFunctions = New TMap
 		Self._properties          = New TMap
 		Self._evalMode            = MODE_EVALUATE
+
+		' Add false + true as properties.
+		Self._properties.Insert("true",  Expression_Evaluator_True)
+		Self._properties.Insert("false", Expression_Evaluator_False)
 	End Method
 
 End Type
+
+Private
+
+Global Expression_Evaluator_True:ScriptObject = ScriptObjectFactory.NewBool(True)
+Global Expression_Evaluator_False:ScriptObject = ScriptObjectFactory.NewBool(False)
+
+Public
