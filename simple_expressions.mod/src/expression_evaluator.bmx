@@ -710,7 +710,9 @@ End Type
 
 Private
 
-Global Expression_Evaluator_True:ScriptObject = ScriptObjectFactory.NewBool(True)
+' Create true and false as globals so they don't have to be re-created when
+' building a new evaluator.
+Global Expression_Evaluator_True:ScriptObject  = ScriptObjectFactory.NewBool(True)
 Global Expression_Evaluator_False:ScriptObject = ScriptObjectFactory.NewBool(False)
 
 Public
