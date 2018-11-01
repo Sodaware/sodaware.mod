@@ -437,7 +437,7 @@ Type ExpressionEvaluator
 					' Integer
 				Else
 					Return ScriptObjectFactory.NewInt(Int(number))
-				EndIf			
+				EndIf
 
 		End Select
 

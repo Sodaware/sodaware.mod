@@ -20,6 +20,8 @@ Import "char_helper.bmx"
 ''' <summary>Class for tokenising strings into something usable.</summary>
 Type ExpressionTokeniser
 
+	Global CHAR_LOOKUP:String[256]
+
 	' List of valid tokens
 	Const TOKEN_BOF:Byte                = 1
 	Const TOKEN_EOF:Byte                = 2
@@ -51,7 +53,6 @@ Type ExpressionTokeniser
 
 	' -- Options
 	Field ignoreWhitespace:Byte         '''< Is whitespace ignored?
-	Field singleCharacterMode:Byte      '''< Is every single char treated as a token?
 
 	' -- Current token info.
 	Field currentToken:Byte             '''< Const TokenType for current token
@@ -94,166 +95,162 @@ Type ExpressionTokeniser
 		' TODO: Cache the next character (via peekChar)? It's used a lot
 
 		' TODO: Should this really throw an error?
-		If self.currentToken = TOKEN_EOF Then
+		If Self.currentToken = TOKEN_EOF Then
 			Throw "End of file reached"
 		EndIf
 
 		' Skip whitespace characters if they're being ignored.
-		If self.ignoreWhitespace Then
+		If Self.ignoreWhitespace Then
 			Self._skipWhitespace()
 		EndIf
 
 		' Check for end of file.
 		If Self._peekChar() = 0 Then
-			self.CurrentToken = TOKEN_EOF
+			Self.currentToken = TOKEN_EOF
 			Return 0
 		EndIf
 
 		' Get next character
-		Local char:String = Chr(Self._readChar())
+		Local charCode:Byte = Self._readChar()
+		Local char:String   = CHAR_LOOKUP[charCode]
 
-		' TODO: Is single character mode something anyone will actually use?
-		If self.singleCharacterMode = False Then
+		' TODO: May remove this completely
+		If Self.ignoreWhitespace = False And CharHelper.IsAsciiWhitespace(charCode) Then
 
-			If Self.ignoreWhitespace = False And CharHelper.IsWhitespace(char) Then
+			Local curString:String
+			Local ch2:Byte
 
-				Local curString:String
-				Local ch2:Byte
+			While (ch2 = Self._peekChar()) <> 0
 
-				While (ch2 = Self._peekChar()) <> 0
+				If Not CharHelper.IsAsciiWhitespace(ch2) Then
+					Exit
+				EndIf
 
-					If Not(CharHelper.IsWhitespace(Chr(ch2))) Then
-						Exit
-					EndIf
-
-					curString:String = curString:String + Chr(ch2)
-					Self._readChar()
-
-					self.CurrentToken	= TOKEN_WHITESPACE
-					self.TokenText		= curString:String
-
-					Return 0
-
-				Wend
-
-			EndIf
-
-			' Read numbers
-			If CharHelper.IsDigit(char) Then
-
-				Self.currentToken = TOKEN_NUMBER
-
-				' Read the number.
-				Local s:String = char
-
-				While Self._peekChar() <> 0
-					char = Chr(Self._peekChar())
-
-					If CharHelper.IsDigit(char)
-						s = s + Chr(Self._readChar())
-					Else
-						Exit
-					EndIf
-				Wend
-
-				self.tokenText = s
-
-				Return 0
-
-			EndIf
-
-			' Read strings
-			If char = "'" Then
-				Self._ReadString()
-				Return 0
-			EndIf
-
-			' Read keywords
-			If char = "_" Or CharHelper.IsLetter(char) Then
-
-				self.currentToken = TOKEN_KEYWORD
-				Local s:String = char
-
-				While Self._peekChar() <> 0
-
-					' TODO: This is ugly. Fix it.
-					If (Chr(Self._peekChar()) = "_" Or Chr(Self._peekChar()) = "-" Or CharHelper.IsLetterOrDigit(Chr(Self._peekChar()))) Then
-						s = s + Chr(Self._readChar())
-					Else
-						Exit
-					EndIf
-
-				Wend
-
-				self.TokenText	= s
-				Return 0
-
-			EndIf
-
-			' Read double character operators
-
-			' Double colon - namespace seperator
-			If (char = ":" And Self._peekChar() = ASC_COLON) Then
-				self.currentToken	= TOKEN_DOUBLE_COLON
-				self.tokenText		= "::"
+				curString:String = curString:String + CHAR_LOOKUP[ch2]
 				Self._readChar()
-				Return 0
-			EndIf
 
-			' Not equal
-			If char = "!" And Self._peekChar() = ASC_EQUALS Then
-				self.currentToken	= TOKEN_NOT_EQUAL
-				self.tokenText		= "!="
-				Self._readChar()
-				Return 0
-			EndIf
+				Self.currentToken	= TOKEN_WHITESPACE
+				Self.tokenText		= curString:String
 
-			' Not equal (alternative)
-			If char = "<" And Self._peekChar() = ASC_GREATER_THAN Then
-				self.currentToken	= TOKEN_NOT_EQUAL
-				self.tokenText		= "<>"
-				Self._readChar()
-				Return 0
-			EndIf
+			Wend
 
-			' Equal (C++ style)
-			If char = "=" And Self._peekChar() = ASC_EQUALS Then
-				self.currentToken	= TOKEN_EQUAL
-				self.tokenText		= "=="
-				Self._readChar()
-				Return 0
-			EndIf
-
-			' Less than equal (<=)
-			If char = "<" And Self._peekChar() = ASC_EQUALS Then
-				self.currentToken	= TOKEN_LE
-				self.tokenText		= "<="
-				Self._readChar()
-				Return 0
-			EndIf
-
-			' Greater than equal (>=)
-			If char = ">" And Self._peekChar() = ASC_EQUALS Then
-				self.currentToken	= TOKEN_GE
-				self.tokenText		= ">="
-				Self._readChar()
-				Return 0
-			EndIf
-
-		Else
-
-			Self._readChar()
+			Return 0
 
 		EndIf
 
-		self.TokenText		= char
-		self.CurrentToken	= TOKEN_PUNCTUATION
+		' Read numbers
+		If CharHelper.IsAsciiDigit(charCode) Then
+
+			Self.currentToken = TOKEN_NUMBER
+
+			' Read the number.
+			Local s:String = char
+
+			While Self._peekChar() <> 0
+				charCode = Self._peekChar()
+
+				If CharHelper.IsAsciiDigit(charCode)
+					s :+ CHAR_LOOKUP[Self._readChar()]
+				Else
+					Exit
+				EndIf
+			Wend
+
+			Self.tokenText = s
+
+			Return 0
+
+		EndIf
+
+		' Read strings
+		If charCode = ASC_APOSTROPHE Then
+			Self._readString()
+			Return 0
+		EndIf
+
+		' Read keywords
+		If charCode = ASC_UNDERSCORE Or CharHelper.IsAsciiLetter(charCode) Then
+
+			Self.currentToken = TOKEN_KEYWORD
+			Local s:String    = char
+
+			Local nextChar:Byte = Self._peekChar()
+			While nextChar <> 0
+				If nextChar = ASC_UNDERSCORE Or nextChar = ASC_MINUS Or CharHelper.IsAsciiLetterOrDigit(nextChar) Then
+					s = s + CHAR_LOOKUP[Self._readChar()]
+				Else
+					Exit
+				EndIf
+
+nextChar = Self._peekChar()
+
+			Wend
+
+			Self.TokenText	= s
+			Return 0
+
+		EndIf
+
+		' Read double character operators
+		Local nextChar:Byte = Self._peekChar()
+
+		' Double colon - namespace seperator
+		If (charCode = ASC_COLON And nextChar = ASC_COLON) Then
+			Self.currentToken	= TOKEN_DOUBLE_COLON
+			Self.tokenText		= "::"
+			Self._readChar()
+			Return 0
+		EndIf
+
+		' Not equal
+		If charCode = ASC_EXCLAMATION And nextChar = ASC_EQUALS Then
+			Self.currentToken	= TOKEN_NOT_EQUAL
+			Self.tokenText		= "!="
+			Self._readChar()
+			Return 0
+		EndIf
+
+		' Not equal (alternative)
+		If charCode = ASC_LESS_THAN And nextChar = ASC_GREATER_THAN Then
+			Self.currentToken	= TOKEN_NOT_EQUAL
+			Self.tokenText		= "<>"
+			Self._readChar()
+			Return 0
+		EndIf
+
+		' Equal (C++ style)
+		If charCode = ASC_EQUALS And nextChar = ASC_EQUALS Then
+			Self.currentToken	= TOKEN_EQUAL
+			Self.tokenText		= "=="
+			Self._readChar()
+			Return 0
+		EndIf
+
+		' Less than equal (<=)
+		If charCode = ASC_LESS_THAN And nextChar = ASC_EQUALS Then
+			Self.currentToken	= TOKEN_LE
+			Self.tokenText		= "<="
+			Self._readChar()
+			Return 0
+		EndIf
+
+		' Greater than equal (>=)
+		If charCode = ASC_GREATER_THAN And nextChar = ASC_EQUALS Then
+			Self.currentToken	= TOKEN_GE
+			Self.tokenText		= ">="
+			Self._readChar()
+			Return 0
+		EndIf
+
+		Self.tokenText    = char
+		Self.currentToken = TOKEN_PUNCTUATION
 
 		' Convert token types
-		If Asc(char) >= 32 And Asc(char) <= 128 Then
-			Self.CurrentToken = ExpressionTokeniser.CharToToken(char)
+		If charCode >= 32 And charCode <= 128 Then
+			Self.currentToken = ExpressionTokeniser.CharToToken(char)
 		EndIf
 
+		Return Self.currentToken
 
 	End Method
 
@@ -261,7 +258,7 @@ Type ExpressionTokeniser
 	''' <param name="word">The word to check against.</param>
 	''' <returns>True if a keyword, false if not.</returns>
 	Method isKeyword:Int(word:String)
-		Return (self.CurrentToken = TOKEN_KEYWORD And self.TokenText = word)
+		Return (Self.CurrentToken = TOKEN_KEYWORD And Self.TokenText = word)
 	End Method
 
 	Method isRelationalOperator:Byte()
@@ -269,7 +266,7 @@ Type ExpressionTokeniser
 		Local result:Byte = False
 
 		' TODO: Not the prettiest. Tidy it up.
-		Select self.currentToken
+		Select Self.currentToken
 			Case TOKEN_EQUAL     ; result = True
 			Case TOKEN_NOT_EQUAL ; result = True
 			Case TOKEN_LT        ; result = True
@@ -323,19 +320,19 @@ Type ExpressionTokeniser
 	End Method
 
 	Method _readString:String()
-		Local s:String    = ""
-		Local char:String = Chr(Self._peekChar())
+		Local s:String      = ""
+		Local charCode:Byte = Self._peekChar()
 
-		While Self._peekChar() <> 0
-			char = Chr(Self._peekChar())
-
-			If char = "'" Then
+		While charCode <> 0
+			If charCode = ASC_APOSTROPHE Then
 				' Skip past the end of the string
 				Self._readChar()
 				Exit
 			Else
-				s :+ Chr(Self._readChar())
+				s :+ CHAR_LOOKUP[Self._readChar()]
 			EndIf
+
+			charCode = Self._peekChar()
 		Wend
 
 		Self._setCurrentToken(TOKEN_STRING, s)
@@ -353,13 +350,11 @@ Type ExpressionTokeniser
 		Return charValue
 	End Method
 
-	' TODO: Return 0 for end?
 	Method _peekChar:Byte()
-		If Self.CurrentPosition < Self._expressionText.Length Then
-			Return Self._expressionText[Self.currentPosition]
-		EndIf
+		' Return `0` Byte if at the end of the expression
+		If Self.CurrentPosition >= Self._expressionText.Length Then Return 0
 
-		Return 0
+		Return Self._expressionText[Self.currentPosition]
 	End Method
 
 	' Move to the next character and return it.
@@ -380,7 +375,6 @@ Type ExpressionTokeniser
 
 		' Setup rules.
 		Self.ignoreWhitespace    = True
-		Self.singleCharacterMode = False
 
 		' Start tokenising
 		Self.getNextToken()
@@ -404,3 +398,13 @@ Type ExpressionTokeniser
 	End Function
 
 End Type
+
+Private
+
+ExpressionTokeniser.CHAR_LOOKUP = New String[256]
+
+For Local i:Int = 0 To 255
+	ExpressionTokeniser.CHAR_LOOKUP[i] = Chr(i)
+Next
+
+Public
