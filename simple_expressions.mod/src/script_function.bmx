@@ -44,10 +44,7 @@ Type SimpleExpressions_Function
 
 	End Method
 
-	' TODO: Cache this value.
 	Method countFunctionParameters:Int()
-		If Self._Method Then return Self._method.ArgTypes().Length
-
 		Return Self._parameterCount
 	End Method
 
@@ -56,12 +53,8 @@ Type SimpleExpressions_Function
 	' -- Exectution
 	' ------------------------------------------------------------
 
-	Method execute:ScriptObject(argList:TList)
-		Return Self.__invoke(argList)
-	End Method
-
-	Method __invoke:ScriptObject(argList:TList)
-		Local result:Object = Self._method.Invoke(Self._parentSet, argList.ToArray())
+	Method execute:ScriptObject(args:ScriptObject[])
+		Local result:Object = Self._method.Invoke(Self._parentSet, args)
 		Return ScriptObjectFactory.FromObject(result)
 	End Method
 
@@ -73,8 +66,9 @@ Type SimpleExpressions_Function
 	Function Create:SimpleExpressions_Function(set:FunctionSet, handler:TMethod)
 		Local this:SimpleExpressions_Function = New SimpleExpressions_Function
 
-		this._parentSet = set
-		this._method    = handler
+		this._parentSet      = set
+		this._method         = handler
+		this._parameterCount = handler.argTypes().Length
 
 		Return this
 	End Function

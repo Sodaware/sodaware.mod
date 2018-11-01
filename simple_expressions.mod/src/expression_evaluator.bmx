@@ -136,7 +136,6 @@ Type ExpressionEvaluator
 
 	End Method
 
-
 	''' <summary>
 	''' Parse a string property and return its value. Will evaluate any
 	''' expressions and functions within the property.
@@ -145,33 +144,33 @@ Type ExpressionEvaluator
 	''' <return>The parsed value.</return>
 	Method interpolate:String(value:String)
 
-		Local propertyValue:String = value
-		While Instr(propertyValue, "${") > 0
+		Local interpolatedValue:String = value
+		While Instr(interpolatedValue, "${") > 0
 
-			Local myExp:String = Mid(propertyValue, Instr(propertyValue, "${") + 2, Instr(propertyValue, "}") - Instr(propertyValue, "${") - 2)
+			Local expression:String = Mid(interpolatedValue, Instr(interpolatedValue, "${") + 2, Instr(interpolatedValue, "}") - Instr(interpolatedValue, "${") - 2)
 
-			If Instr(propertyValue, "}") < 1 Then
-				Throw "Missing closing brace in expression ~q" + propertyValue + "~q"
+			If Instr(interpolatedValue, "}") < 1 Then
+				Throw "Missing closing token in interpolated string ~q" + interpolatedValue + "~q"
 			EndIf
 
-			' If expression has contents, work it !
-			If myExp <> "" Then
+			' If expression has contents, evaluate it.
+			If expression <> "" Then
 
 				' -- Execute
-				Local res:ScriptObject = Self.evaluate(myExp)
+				Local res:ScriptObject = Self.evaluate(expression)
 				If res = Null Then
-					Print "Expression '" + myExp + "' returned a null result"
+					Print "Expression '" + expression + "' returned a null result"
 				End If
 
 				' -- Replace expression with value
-				propertyValue = propertyValue.Replace("${" + myExp + "}", res.ToString())
+				interpolatedValue = interpolatedValue.Replace("${" + expression + "}", res.ToString())
 			Else
-				propertyValue = propertyValue.Replace("${" + myExp + "}", "")
+				interpolatedValue = interpolatedValue.Replace("${" + expression + "}", "")
 			EndIf
 
 		Wend
 
-		Return propertyValue
+		Return interpolatedValue
 
 	End Method
 
@@ -180,12 +179,10 @@ Type ExpressionEvaluator
 	' -- Evaluation Methods
 	' ------------------------------------------------------------
 
-	' TODO: shouldn't this be evaluate
 	Method parseExpression:ScriptObject()
 		Return Self.parseBooleanOr()
 	End Method
 
-	' TODO: Should this be called `evaluateBooleanOr`?
 	Method parseBooleanOr:ScriptObject()
 		Local leftSide:ScriptObject = Self.parseBooleanAnd()
 
@@ -198,7 +195,7 @@ Type ExpressionEvaluator
 				EndIf
 			EndIf
 
-			' Right hand side
+			' Evaluate the rest of the expression.
 			Self._tokeniser.getNextToken()
 			Local rightSide:ScriptObject = self.parseBooleanAnd()
 
@@ -288,7 +285,7 @@ Type ExpressionEvaluator
 		Local leftSide:ScriptObject  = Self.parseMulDiv()
 		Local rightSide:ScriptObject = Null
 
-		While True
+		Repeat
 			Select Self._tokeniser.currentToken
 
 				Case ExpressionTokeniser.TOKEN_PLUS
@@ -324,8 +321,7 @@ Type ExpressionEvaluator
 					Exit
 
 			End select
-
-		Wend
+		Forever
 
 		Return leftSide
 
@@ -384,15 +380,11 @@ Type ExpressionEvaluator
 
 			End Select
 
-		Forever
+			Forever
+
 
 		Return leftSide
 
-	End Method
-
-	Method parseConditional:ScriptObject()
-		Throw "Not implemented :("
-		Return Null
 	End Method
 
 	' TODO: This is ugly.
@@ -429,8 +421,6 @@ Type ExpressionEvaluator
 
 					Self._tokeniser.getNextToken()
 
-					' Check for error
-
 					' Done
 					Return ScriptObjectFactory.NewFloat(Float(number))
 
@@ -439,35 +429,38 @@ Type ExpressionEvaluator
 					Return ScriptObjectFactory.NewInt(Int(number))
 				EndIf
 
-		End Select
+			' Negative numbers.
+			Case ExpressionTokeniser.TOKEN_MINUS
+				Self._tokeniser.getNextToken()
 
-		' -- Negative numbers
-		If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_MINUS Then
+				' Get the next value and then negate it.
+				val	= Self.parseValue()
 
-			Self._tokeniser.getNextToken()
+				If self._evalMode <> MODE_PARSE_ONLY Then
+					' TODO: Can we optimize this?
+					Return ScriptObject.SubtractObjects(ScriptObjectFactory.NewInt(0), val)
+				EndIf
 
-			' Unary minus
-			val	= Self.parseValue()
+				Return Null
 
-			If self._evalMode <> MODE_PARSE_ONLY Then
+			' Items in brackets.
+			Case ExpressionTokeniser.TOKEN_LEFT_PAREN
+				Self._tokeniser.getNextToken()
 
-				' Update object value
-				'Select val\m_Type
-			'		Case OBJ_INT	: val\m_ValueInt	= -val\m_ValueInt
-			'		Case OBJ_FLOAT	: val\m_ValueFloat	= -val\m_ValueFloat
-			'	End Select
+				val	= Self.parseExpression()
 
-				val = ScriptObject.SubtractObjects(ScriptObjectFactory.NewInt(0), val)
+				' Check for missing closed brackets.
+				If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_RIGHT_PAREN Then
+					RuntimeError("')' expected at " + self._tokeniser.currentPosition)
+				EndIf
 
+				Self._tokeniser.getNextToken()
 				Return val
 
-			EndIf
-
-			Return Null
-
-		EndIf
+		End Select
 
 		' Boolean "NOT"
+		' TODO: fix this to use a constant for the keyword.
 		If Self._tokeniser.IsKeyword("not") Then
 
 			Self._tokeniser.getNextToken()
@@ -482,34 +475,14 @@ Type ExpressionEvaluator
 
 		EndIf
 
-		' Brackets.
-		If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_LEFT_PAREN Then
-
-			Self._tokeniser.getNextToken()
-
-			val	= Self.ParseExpression()
-
-			If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_RIGHT_PAREN Then
-				' Throw error
-				RuntimeError("')' expected at " + self._tokeniser.currentPosition)
-			EndIf
-
-			Self._tokeniser.getNextToken()
-			Return val
-
-		EndIf
-
 		' Keywords (big chunk of code)
 		If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_KEYWORD Then
 
 			Local functionOrPropertyName:String = Self._tokeniser.tokenText
 
+			' TODO: Add false + true as properties?
 			' Built-in keywords.
 			Select Lower(functionOrPropertyName)
-
-				' TODO: Remvoe this!
-				Case "if"
-					Return Self.parseConditional()
 
 				Case "true"
 					Self._tokeniser.getNextToken()
@@ -523,10 +496,10 @@ Type ExpressionEvaluator
 
 			' Something different - possibly a function name or a property.
 
-			' Switch off "ignore whitespace" as properties shouldn't contain spaces?
+			' TODO: Switch off "ignore whitespace" as properties shouldn't contain spaces?
 			Self._tokeniser.getNextToken()
 
-			Local args:TList      = New TList
+			Local args:ScriptObject[]
 			Local isFunction:Byte = False
 
 			' TODO: Shouldn't require the double colon for property or function names.
@@ -558,84 +531,17 @@ Type ExpressionEvaluator
 
 			EndIf
 
-			' Switch whitespace back on
-			Self._tokeniser.IgnoreWhitespace = True
+			' Switch whitespace back on.
+			Self._tokeniser.ignoreWhitespace = True
 
-			' If we're at a space, get the next token
+			' If we're at a space, get the next token.
 			If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_WHITESPACE Then
 				Self._tokeniser.getNextToken()
 			EndIf
 
-			' -- Execute the function
-
-			' TODO: Split this into a new method
+			' Extract function arguments.
 			If isFunction Then
-
-				' Check for opening bracket (for params)
-				If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_LeFT_PAREN Then
-					RuntimeError("'(' expected at " + self._tokeniser.currentPosition)
-				EndIf
-
-				Self._tokeniser.getNextToken()
-
-				' TODO: Fix function arguments
-				Local currentArgument:Int = 0
-				Local parameterCount:Int  = Self._countFunctionParameters(functionOrPropertyName)
-
-				While (Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_RIGHT_PAREN And Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_EOF)
-
-					' Too many parameters.
-					If currentArgument > parameterCount Then
-						RuntimeError("Function ~q" + functionOrPropertyName + "~q -- Too many parameters")
-					EndIf
-
-					' Only parse if we have parameters.
-					If parameterCount > 0 Then
-
-						' Get the next parameter.
-						Local beforeArg:Int  = Self._tokeniser.currentPosition
-						Local e:ScriptObject = Self.parseExpression()
-						Local afterArg:Int   = Self._tokeniser.currentPosition
-
-						' Evaluate (will skip in parse only mode)
-						If self._evalMode <> MODE_PARSE_ONLY Then
-							' Convert to the required param & add to the list of params
-''							Local convertedValue:ScriptObject = e
-
-							' TODO: Add this as a script object instead?
-							args.AddLast(e.ToString())
-						EndIf
-
-						currentArgument = currentArgument + 1
-
-					EndIf
-
-					' Check if we're at the end
-					If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_RIGHT_PAREN Then
-						Exit
-					EndIf
-
-					' Check if there was no comma (syntax error)
-					If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_COMMA Then
-						RuntimeError("',' expected at " + Self._tokeniser.currentPosition + " -- found " + Self._tokeniser.currentToken)
-					EndIf
-
-					Self._tokeniser.getNextToken()
-
-				Wend
-
-				' Not enough parameters.
-				If currentArgument < parameterCount Then
-					RuntimeError("Function ~q" + functionOrPropertyName + "~q -- Not enough parameters")
-				EndIf
-
-				' No close bracket found.
-				If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_RIGHT_PAREN Then
-					RuntimeError("')' expected at " + self._tokeniser.currentPosition)
-				EndIf
-
-				Self._tokeniser.getNextToken()
-
+				args = Self.parseFunctionArgs(functionOrPropertyName)
 			EndIf
 
 			' Either run a function or get a property value
@@ -653,7 +559,75 @@ Type ExpressionEvaluator
 
 	End Method
 
-	Method evaluateFunction:ScriptObject(functionName:String, argList:TList = Null)
+	Method parseFunctionArgs:ScriptObject[](functionName:String)
+
+		' Check for opening bracket (for params)
+		If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_LEFT_PAREN Then
+			RuntimeError("'(' expected at " + self._tokeniser.currentPosition)
+		EndIf
+
+		Local currentArgument:Int = 0
+		Local parameterCount:Int  = Self._countFunctionParameters(functionName)
+		Local args:ScriptObject[parameterCount]
+
+		' Move to start of arguments.
+		Self._tokeniser.getNextToken()
+
+		' If no parameters, just skip to the end.
+		If parameterCount = 0 Then
+			' TODO: Should probably check for a close parenthesis here.
+			Self._tokeniser.getNextToken()
+			Return args
+		EndIf
+
+		While (Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_RIGHT_PAREN And Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_EOF)
+
+			' Check if too many parameters have been read.
+			If currentArgument > parameterCount Then
+				RuntimeError("Function ~q" + functionName + "~q -- Too many parameters (expected " + parameterCount + ")")
+			EndIf
+
+			' Get the next parameter.
+			Local e:ScriptObject = Self.parseExpression()
+
+			' Evaluate (will skip in parse only mode)
+			If self._evalMode <> MODE_PARSE_ONLY Then
+				args[currentArgument] = e
+			EndIf
+
+			currentArgument = currentArgument + 1
+
+			' Check if we're at the end
+			If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_RIGHT_PAREN Then
+				Exit
+			EndIf
+
+			' Check if there was no comma (syntax error)
+			If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_COMMA Then
+				RuntimeError("',' expected at " + Self._tokeniser.currentPosition + " -- found " + Self._tokeniser.currentToken)
+			EndIf
+
+			Self._tokeniser.getNextToken()
+
+		Wend
+
+		' Not enough parameters.
+		If currentArgument < parameterCount Then
+			RuntimeError("Function ~q" + functionName + "~q -- Not enough parameters")
+		EndIf
+
+		' No close bracket found.
+		If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_RIGHT_PAREN Then
+			RuntimeError("')' expected at " + self._tokeniser.currentPosition)
+		EndIf
+
+		Self._tokeniser.getNextToken()
+
+		return args
+
+	End Method
+
+	Method evaluateFunction:ScriptObject(functionName:String, argList:ScriptObject[] = Null)
 		' Get the function object
 		Local func:SimpleExpressions_Function = Self.getFunction(functionName)
 

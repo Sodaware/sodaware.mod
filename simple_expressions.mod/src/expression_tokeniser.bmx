@@ -110,7 +110,7 @@ Type ExpressionTokeniser
 			Return 0
 		EndIf
 
-		' Get next character
+		' Read the next character.
 		Local charCode:Byte = Self._readChar()
 		Local char:String   = CHAR_LOOKUP[charCode]
 
@@ -138,117 +138,91 @@ Type ExpressionTokeniser
 
 		EndIf
 
-		' Read numbers
-		If CharHelper.IsAsciiDigit(charCode) Then
-
-			Self.currentToken = TOKEN_NUMBER
-
-			' Read the number.
-			Local s:String = char
-
-			While Self._peekChar() <> 0
-				charCode = Self._peekChar()
-
-				If CharHelper.IsAsciiDigit(charCode)
-					s :+ CHAR_LOOKUP[Self._readChar()]
-				Else
-					Exit
-				EndIf
-			Wend
-
-			Self.tokenText = s
-
-			Return 0
-
-		EndIf
-
-		' Read strings
+		' Read strings.
 		If charCode = ASC_APOSTROPHE Then
 			Self._readString()
 			Return 0
 		EndIf
 
-		' Read keywords
+		' Read numbers.
+		If charCode >= ASC_0 And charCode =< ASC_9 Then
+			Self.currentToken = TOKEN_NUMBER
+			Self.tokenText    = CHAR_LOOKUP[charCode]
+
+			' Read everything until the end of the digit.
+			charCode = Self._peekChar()
+			While charCode <> 0
+				' End of number
+				If charCode < ASC_0 or charCode > ASC_9 Then Exit
+
+				Self.tokenText :+ CHAR_LOOKUP[charCode]
+				charCode = Self._nextChar()
+			Wend
+
+			Return 0
+		EndIf
+
+		' Read keywords.
 		If charCode = ASC_UNDERSCORE Or CharHelper.IsAsciiLetter(charCode) Then
-
 			Self.currentToken = TOKEN_KEYWORD
-			Local s:String    = char
+			Self.tokenText    = char
 
-			Local nextChar:Byte = Self._peekChar()
-			While nextChar <> 0
-				If nextChar = ASC_UNDERSCORE Or nextChar = ASC_MINUS Or CharHelper.IsAsciiLetterOrDigit(nextChar) Then
-					s = s + CHAR_LOOKUP[Self._readChar()]
+			charCode = Self._peekChar()
+			While charCode <> 0
+				If charCode = ASC_UNDERSCORE Or charCode = ASC_MINUS Or CharHelper.IsAsciiLetterOrDigit(charCode) Then
+					Self.tokenText :+ CHAR_LOOKUP[charCode]
 				Else
 					Exit
 				EndIf
 
-nextChar = Self._peekChar()
-
+				charCode = Self._nextChar()
 			Wend
 
-			Self.TokenText	= s
 			Return 0
-
 		EndIf
 
 		' Read double character operators
 		Local nextChar:Byte = Self._peekChar()
 
-		' Double colon - namespace seperator
-		If (charCode = ASC_COLON And nextChar = ASC_COLON) Then
+		If charCode = ASC_COLON And nextChar = ASC_COLON Then
+			' :: - namespace seperator
 			Self.currentToken	= TOKEN_DOUBLE_COLON
 			Self.tokenText		= "::"
 			Self._readChar()
 			Return 0
-		EndIf
-
-		' Not equal
-		If charCode = ASC_EXCLAMATION And nextChar = ASC_EQUALS Then
+		ElseIf charCode = ASC_EXCLAMATION And nextChar = ASC_EQUALS Then
+			' != - Not equal to
 			Self.currentToken	= TOKEN_NOT_EQUAL
 			Self.tokenText		= "!="
 			Self._readChar()
 			Return 0
-		EndIf
-
-		' Not equal (alternative)
-		If charCode = ASC_LESS_THAN And nextChar = ASC_GREATER_THAN Then
+		ElseIf charCode = ASC_LESS_THAN And nextChar = ASC_GREATER_THAN Then
+			' <> - Not equal to
 			Self.currentToken	= TOKEN_NOT_EQUAL
 			Self.tokenText		= "<>"
 			Self._readChar()
 			Return 0
-		EndIf
-
-		' Equal (C++ style)
-		If charCode = ASC_EQUALS And nextChar = ASC_EQUALS Then
+		ElseIf charCode = ASC_EQUALS And nextChar = ASC_EQUALS Then
+			' == - Equal (C++ style)
 			Self.currentToken	= TOKEN_EQUAL
 			Self.tokenText		= "=="
 			Self._readChar()
 			Return 0
-		EndIf
-
-		' Less than equal (<=)
-		If charCode = ASC_LESS_THAN And nextChar = ASC_EQUALS Then
-			Self.currentToken	= TOKEN_LE
-			Self.tokenText		= "<="
+		ElseIf charCode = ASC_LESS_THAN And nextChar = ASC_EQUALS Then
+			' <= - Less than equal
+			Self._setCurrentToken(TOKEN_LE, "<=")
+			Self._readChar()
+			Return 0
+		ElseIf charCode = ASC_GREATER_THAN And nextChar = ASC_EQUALS Then
+			' >= - Greater than equal
+			Self._setCurrentToken(TOKEN_GE, ">=")
 			Self._readChar()
 			Return 0
 		EndIf
 
-		' Greater than equal (>=)
-		If charCode = ASC_GREATER_THAN And nextChar = ASC_EQUALS Then
-			Self.currentToken	= TOKEN_GE
-			Self.tokenText		= ">="
-			Self._readChar()
-			Return 0
-		EndIf
-
+		' Nothing else matches - treat as punctuation.
 		Self.tokenText    = char
-		Self.currentToken = TOKEN_PUNCTUATION
-
-		' Convert token types
-		If charCode >= 32 And charCode <= 128 Then
-			Self.currentToken = ExpressionTokeniser.CharToToken(char)
-		EndIf
+		Self.currentToken = Self.charToToken(charCode)
 
 		Return Self.currentToken
 
@@ -280,34 +254,34 @@ nextChar = Self._peekChar()
 	End Method
 
 	''' <summary>Gets the TokenType for a character.</summary>
-	''' <oaram name="charValue">The character to lookup.</param>
+	''' <oaram name="code">The character code.</param>
 	''' <returns>TokenType value.</returns>
-	Function CharToToken:Byte(charValue:String)
+	Method charToToken:Byte(charCode:Byte)
 
-		Select charValue
+		Select charCode
 
-			Case "+"		; Return TOKEN_PLUS
-			Case "-"		; Return TOKEN_MINUS
-			Case "*"		; Return TOKEN_MUL
-			Case "/"		; Return TOKEN_DIV
-			Case "%"		; Return TOKEN_MOD
-			Case "<"		; Return TOKEN_LT
-			Case ">"		; Return TOKEN_GT
-			Case "("		; Return TOKEN_LEFT_PAREN
-			Case ")"		; Return TOKEN_RIGHT_PAREN
-			Case "{"		; Return TOKEN_LEFT_CURLY_BRACE
-			Case "}"		; Return TOKEN_RIGHT_CURLY_BRACE
-			Case "!"		; Return TOKEN_NOT
-			Case "$"		; Return TOKEN_DOLLAR
-			Case ","		; Return TOKEN_COMMA
-			Case "."		; Return TOKEN_DOT
+			Case ASC_PLUS           ; Return TOKEN_PLUS
+			Case ASC_MINUS          ; Return TOKEN_MINUS
+			Case ASC_ASTERISK       ; Return TOKEN_MUL
+			Case ASC_FORWARD_SLASH  ; Return TOKEN_DIV
+			Case ASC_COMMA          ; Return TOKEN_COMMA
+			Case ASC_PERIOD         ; Return TOKEN_DOT
+			Case ASC_BRACKET_OPEN   ; Return TOKEN_LEFT_PAREN
+			Case ASC_BRACKET_CLOSE  ; Return TOKEN_RIGHT_PAREN
+			Case ASC_PERCENT        ; Return TOKEN_MOD
+			Case ASC_LESS_THAN      ; Return TOKEN_LT
+			Case ASC_GREATER_THAN   ; Return TOKEN_GT
+			Case ASC_CURLY_OPEN     ; Return TOKEN_LEFT_CURLY_BRACE
+			Case ASC_CURLY_CLOSE    ; Return TOKEN_RIGHT_CURLY_BRACE
+			Case ASC_EXCLAMATION    ; Return TOKEN_NOT
+			Case ASC_DOLLAR         ; Return TOKEN_DOLLAR
 
 		End Select
 
 		' -- Default to punctuation
 		Return TOKEN_PUNCTUATION
 
-	End Function
+	End Method
 
 
 	' ------------------------------------------------------------
@@ -341,13 +315,10 @@ nextChar = Self._peekChar()
 
 	End Method
 
-	''' <summary>Moves to the next character in the expression and returns its ascii value.</summary>
+	''' <summary>Read the current character and move to the next position.</summary>
 	Method _readChar:Byte()
-		Local charValue:Int = Self._peekChar()
-
-		Self.CurrentPosition:+ 1
-
-		Return charValue
+		Self.currentPosition:+ 1
+		Return Self._expressionText[Self.currentPosition - 1]
 	End Method
 
 	Method _peekChar:Byte()

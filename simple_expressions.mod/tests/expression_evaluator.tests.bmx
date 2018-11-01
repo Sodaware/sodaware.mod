@@ -65,8 +65,28 @@ Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 	' -- Number Tests
 	' ------------------------------------------------------------
 
+	Method testCanReadIntegers() { test }
+		Self._testExpressionI(3, "3")
+		Self._testExpressionI(3, "  3  ")
+		Self._testExpressionI(123456, "123456")
+		Self._testExpressionI(123456, " 123456  ")
+	End Method
+
+	Method testCanReadNegativeIntegers() { test }
+		Self._testExpressionI(-3, "-3")
+		Self._testExpressionI(-3, "  -3  ")
+		Self._testExpressionI(-123456, "-123456")
+		Self._testExpressionI(-123456, " -123456  ")
+	End Method
+
 	Method testCanAddIntegers() { test }
 		Self._testExpressionI(3, "1 + 2")
+		Self._testExpressionI(15, "1 + 2 + 3 + 4 + 5")
+	End Method
+
+	Method testCanAddNegativeIntegers() { test }
+		Self._testExpressionI(2, "3 + -1")
+		Self._testExpressionI(-6, "-3 + -3")
 	End Method
 
 	Method testCanSubtractIntegers() { test }
@@ -85,6 +105,19 @@ Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 		Self._testExpressionI(60, "10 * ( ( 4 / 2 ) + 4 )")
 	End Method
 
+	Method testCanAddFloats() { test }
+		Self._testExpressionF(3.5, "1.75 + 1.75")
+	End Method
+
+	Method testCanSubtractFloats() { test }
+		Self._testExpressionF(1.5, "2.75 - 1.25")
+	End Method
+
+	Method testCanMultiplyFloats() { test }
+		Self._testExpressionF(6.25, "2.5 * 2.5")
+	End Method
+
+	
 
 	' ------------------------------------------------------------
 	' -- String Tests
@@ -116,6 +149,13 @@ Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 		Self._testExpressionBool(False, "false and true")
 		Self._testExpressionBool(False, "false and false")
 	End Method
+
+	Method testMixedBooleansReturnCorrectResults() { test }
+		Self._testExpressionBool(True, "true and true and true")
+		Self._testExpressionBool(False, "true and true and false")
+		Self._testExpressionBool(True, "true and true or false")
+	End Method
+
 
 	' ------------------------------------------------------------
 	' -- Custom Function Tests
@@ -169,6 +209,12 @@ Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 		Self.assertEqualsI(expected, res.ValueInt(), message)
 	End Method
 
+	Method _testExpressionF(expected:Float, expression:String, message:String = "")
+		Local eval:ExpressionEvaluator = New ExpressionEvaluator
+		Local res:ScriptObject = eval.Evaluate(expression)
+		Self.assertEqualsF(expected, res.valueFloat(), 0, message)
+	End Method
+
 	' Internal helper - test an expression evaluations to a specific string
 	Method _testExpression(expected:String, expression:String, message:String = "")
 		Local eval:ExpressionEvaluator = New ExpressionEvaluator
@@ -202,7 +248,7 @@ Type FunctionTest Extends SimpleExpressions_Function
 		Self._parameterCount = 0
 	End Method
 
-	Method execute:ScriptObject(args:TList)
+	Method execute:ScriptObject(args:ScriptObject[])
 		Return ScriptObjectFactory.NewInt(20)
 	End Method
 End Type
@@ -213,10 +259,10 @@ Type AddFunctionTest Extends SimpleExpressions_Function
 		Self._parameterCount = 2
 	End Method
 
-	Method execute:ScriptObject(args:TList)
+	Method execute:ScriptObject(args:ScriptObject[])
 		Return ScriptObjectFactory.NewInt( ..
-			Int(args.valueAtIndex(0).toString()) + ..
-			Int(args.valueAtIndex(1).toString()) ..
+			args[0].valueInt() + ..
+			args[1].valueInt() ..
 		)
 	End Method
 End Type

@@ -25,9 +25,11 @@ Type ScriptObject
 	Const OBJECT_STRING:Byte = 4
 	Const OBJECT_BOOL:Byte   = 8
 
-
 	Field _type:Byte
 	Field _value:Object
+
+	' Individual value fields.
+	Field _valueInt:Int
 
 
 	' ------------------------------------------------------------
@@ -43,7 +45,7 @@ Type ScriptObject
 	End Method
 
 	Method valueInt:Int()
-		Return Int(Self._value.ToString())
+		Return Self._valueInt
 	End Method
 
 	Method valueFloat:Float()
@@ -51,11 +53,17 @@ Type ScriptObject
 	End Method
 
 	Method valueString:String()
-		Return Self._value.ToString()
+		Return Self.toString()
 	End Method
 
 	Method toString:String()
-		Return Self.valueString()
+		Select Self._Type
+			Case OBJECT_INT
+				Return String(Self._valueInt)
+
+			Default
+				Return String(Self._value)
+		End Select
 	End Method
 
 	' Debug only!
@@ -97,7 +105,7 @@ Type ScriptObject
 
 		' Adding floats
 		If o1._type = OBJECT_FLOAT And o1._type = OBJECT_FLOAT Then
-			Return ScriptObjectFactory.NewFloat(Float(o1._value.ToString()) + Float(o2._value.ToString()))
+			Return ScriptObjectFactory.NewFloat(o1.valueFloat() + o2.valueFloat())
 		End If
 
 		' Adding mixed floats.
@@ -111,24 +119,24 @@ Type ScriptObject
 
 	Function SubtractObjects:ScriptObject(o1:ScriptObject, o2:ScriptObject)
 
-		' Can always dubtract strings
+		' Can always subtract strings.
 		If o1._type = OBJECT_STRING Or o2._type = OBJECT_STRING Then
 			Return ScriptObjectFactory.NewString(String(o1._value).Replace(String(o2._value), ""))
 		EndIf
 
 		' Subtracting ints
 		If o1._type = OBJECT_INT And o1._type = OBJECT_INT Then
-			Return ScriptObjectFactory.newint(Int(o1._value.ToString()) - Int(o2._value.ToString()))
+			Return ScriptObjectFactory.NewInt(o1.valueInt() - o2.valueInt())
 		End If
 
 		' Subtracting floats
 		If o1._type = OBJECT_FLOAT And o1._type = OBJECT_FLOAT Then
-			Return ScriptObjectFactory.NewFloat(Float(o1._value.ToString()) - Float(o2._value.ToString()))
+			Return ScriptObjectFactory.NewFloat(o1.valueFloat() - o2.valueFloat())
 		End If
 
-		' Subtracting mixed
+		' Subtracting mixed. Slow.
 		If o1._type = OBJECT_FLOAT Or o1._type = OBJECT_FLOAT Then
-			Return ScriptObjectFactory.NewFloat(Float(o1._value.ToString()) - Float(o2._value.ToString()))
+			Return ScriptObjectFactory.NewFloat(Float(o1.ToString()) - Float(o2.ToString()))
 		End If
 
 		Return Null
@@ -138,17 +146,17 @@ Type ScriptObject
 	Function MultiplyObjects:ScriptObject(o1:ScriptObject, o2:ScriptObject)
 
 		If o1._type = OBJECT_INT And o1._type = OBJECT_INT Then
-			Return ScriptObjectFactory.newint(Int(o1._value.ToString()) * Int(o2._value.ToString()))
+			Return ScriptObjectFactory.newint(o1.valueInt() * o2.valueInt())
 		End If
 
 		' Subtracting floats
 		If o1._type = OBJECT_FLOAT And o1._type = OBJECT_FLOAT Then
-			Return ScriptObjectFactory.NewFloat(Float(o1._value.ToString()) * Float(o2._value.ToString()))
+			Return ScriptObjectFactory.NewFloat(o1.valueFloat() * o2.valueFloat())
 		End If
 
 		' Subtracting mixed
 		If o1._type = OBJECT_FLOAT Or o1._type = OBJECT_FLOAT Then
-			Return ScriptObjectFactory.NewFloat(Float(o1._value.ToString()) * Float(o2._value.ToString()))
+			Return ScriptObjectFactory.NewFloat(Float(o1.ToString()) * Float(o2.ToString()))
 		End If
 
 		Return Null
@@ -158,12 +166,12 @@ Type ScriptObject
 	Function DivideObjects:ScriptObject(o1:ScriptObject, o2:ScriptObject)
 
 		If o1._type = OBJECT_INT And o1._type = OBJECT_INT Then
-			Return ScriptObjectFactory.newint(Int(o1._value.ToString()) / Int(o2._value.ToString()))
+			Return ScriptObjectFactory.NewInt(o1.valueInt() / o2.valueInt())
 		End If
 
 		' Subtracting floats
 		If o1._type = OBJECT_FLOAT And o1._type = OBJECT_FLOAT Then
-			Return ScriptObjectFactory.NewFloat(Float(o1._value.ToString()) / Float(o2._value.ToString()))
+			Return ScriptObjectFactory.NewFloat(o1.valueFloat() / o2.valueFloat())
 		End If
 
 		' Subtracting mixed
@@ -178,7 +186,7 @@ Type ScriptObject
 	Function ModObjects:ScriptObject(o1:ScriptObject, o2:ScriptObject)
 
 		If o1._type = OBJECT_INT And o1._type = OBJECT_INT Then
-			Return ScriptObjectFactory.newint(Int(o1._value.ToString()) Mod Int(o2._value.ToString()))
+			Return ScriptObjectFactory.NewInt(o1.valueInt() Mod o2.valueInt())
 		End If
 
 		' Subtracting floats

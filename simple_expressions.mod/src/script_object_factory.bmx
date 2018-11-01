@@ -33,7 +33,7 @@ Type ScriptObjectFactory
 	Function NewInt:ScriptObject(val:Int)
 		Local this:ScriptObject = New ScriptObject
 		this._type = ScriptObject.OBJECT_INT
-		this._value = String(val)
+		this._valueInt = val
 		Return this
 	End Function
 
