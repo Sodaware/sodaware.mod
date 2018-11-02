@@ -92,8 +92,6 @@ Type ExpressionTokeniser
 	''' <summary>Move the to the next token and return it.</summary>
 	Method getNextToken:Byte()
 
-		' TODO: Cache the next character (via peekChar)? It's used a lot
-
 		' TODO: Should this really throw an error?
 		If Self.currentToken = TOKEN_EOF Then
 			Throw "End of file reached"
@@ -115,6 +113,7 @@ Type ExpressionTokeniser
 		Local char:String   = CHAR_LOOKUP[charCode]
 
 		' TODO: May remove this completely
+		rem
 		If Self.ignoreWhitespace = False And CharHelper.IsAsciiWhitespace(charCode) Then
 
 			Local curString:String
@@ -137,6 +136,7 @@ Type ExpressionTokeniser
 			Return 0
 
 		EndIf
+		End rem
 
 		' Read strings.
 		If charCode = ASC_APOSTROPHE Then
@@ -242,26 +242,21 @@ Type ExpressionTokeniser
 	''' <summary>Checks if the current token is a reserved keyword.</summary>
 	''' <param name="word">The word to check against.</param>
 	''' <returns>True if a keyword, false if not.</returns>
-	Method isKeyword:Int(word:String)
-		Return (Self.CurrentToken = TOKEN_KEYWORD And Self.TokenText = word)
+	Method isKeyword:Byte(word:String)
+		Return (Self.currentToken = TOKEN_KEYWORD And Self.tokenText = word)
 	End Method
 
 	Method isRelationalOperator:Byte()
-
-		Local result:Byte = False
-
-		' TODO: Not the prettiest. Tidy it up.
 		Select Self.currentToken
-			Case TOKEN_EQUAL     ; result = True
-			Case TOKEN_NOT_EQUAL ; result = True
-			Case TOKEN_LT        ; result = True
-			Case TOKEN_GT        ; result = True
-			Case TOKEN_LE        ; result = True
-			Case TOKEN_GE        ; result = True
+			Case TOKEN_EQUAL     ; Return True
+			Case TOKEN_NOT_EQUAL ; Return True
+			Case TOKEN_LT        ; Return True
+			Case TOKEN_GT        ; Return True
+			Case TOKEN_LE        ; Return True
+			Case TOKEN_GE        ; Return True
 		End Select
 
-		Return result
-
+		Return False
 	End Method
 
 	''' <summary>Gets the TokenType for a character.</summary>

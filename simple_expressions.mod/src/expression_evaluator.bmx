@@ -182,27 +182,21 @@ Type ExpressionEvaluator
 	' ------------------------------------------------------------
 
 	Method parseExpression:ScriptObject()
-		Return Self.parseBooleanOr()
-	End Method
 
-	Method parseBooleanOr:ScriptObject()
 		Local leftSide:ScriptObject = Self.parseBooleanAnd()
 
 		While Self._tokeniser.isKeyword("or")
 
-			If Self._evalMode <> MODE_PARSE_ONLY Then
-				' If true, we're done (because it's an or)
-				If leftSide.valueBool() Then
-					Self._evalMode = MODE_PARSE_ONLY
-				EndIf
-			EndIf
+			' If the left side is TRUE, we can skip evaluation because the
+			' result will be TRUE.
+			If leftSide.valueBool() Then Self._evalMode = MODE_PARSE_ONLY
 
 			' Evaluate the rest of the expression.
 			Self._tokeniser.getNextToken()
 			Local rightSide:ScriptObject = self.parseBooleanAnd()
 
 			If Self._evalMode <> MODE_PARSE_ONLY Then
-				' TODO: Can be use the global true/false values here?
+				' TODO: Don't call `NewBool` here - use a helper to return one of the two private globals (to prevent creating lots of objects)
 				leftSide = ScriptObjectFactory.NewBool(leftSide.valueBool() Or rightSide.valueBool())
 			EndIf
 
@@ -216,16 +210,13 @@ Type ExpressionEvaluator
 
 		Local leftSide:ScriptObject = Self.parseRelationalExpression()
 
-		While Self._tokeniser.IsKeyword("and")
+		While Self._tokeniser.isKeyword("and")
 
-			If Self._evalMode <> MODE_PARSE_ONLY Then
-				'  If false, we're done (because it's an and)
-				If leftSide.valueBool() = False Then
-					Self._evalMode = MODE_PARSE_ONLY
-				EndIf
-			EndIf
+			' If the left side is FALSE, we can skip evaluation because the
+			' result will be FALSE.
+			If leftSide.valueBool() = FALSE Then Self._evalMode = MODE_PARSE_ONLY
 
-			' Right hand side
+			' Evaluate the rest of the expression.
 			Self._tokeniser.getNextToken()
 			Local rightSide:ScriptObject = Self.parseRelationalExpression()
 
@@ -292,6 +283,7 @@ Type ExpressionEvaluator
 		Repeat
 			Select Self._tokeniser.currentToken
 
+				' Addition.
 				Case ExpressionTokeniser.TOKEN_PLUS
 
 					' Get the next item to add.
@@ -304,7 +296,6 @@ Type ExpressionEvaluator
 						Else
 							RuntimeError("Can't ADD")
 						EndIf
-
 					EndIf
 
 				Case ExpressionTokeniser.TOKEN_MINUS
@@ -324,7 +315,7 @@ Type ExpressionEvaluator
 				Default
 					Exit
 
-			End select
+			End Select
 		Forever
 
 		Return leftSide
@@ -384,26 +375,19 @@ Type ExpressionEvaluator
 
 			End Select
 
-			Forever
-
+		Forever
 
 		Return leftSide
 
 	End Method
 
-	' TODO: This is ugly.
+	' TODO: This is ugly and pretty slow
 	Method parseValue:ScriptObject()
 
 		' -- Setup
 		Local val:ScriptObject
 
 		Select Self._tokeniser.currentToken
-
-			' In a string.
-			Case ExpressionTokeniser.TOKEN_STRING
-				val = ScriptObjectFactory.NewString(Self._tokeniser.tokenText)
-				Self._tokeniser.getNextToken()
-				Return val
 
 			' Plain number
 			Case ExpressionTokeniser.TOKEN_NUMBER
@@ -461,90 +445,89 @@ Type ExpressionEvaluator
 				Self._tokeniser.getNextToken()
 				Return val
 
-		End Select
-
-		' Boolean "NOT"
-		' TODO: fix this to use a constant for the keyword.
-		If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_NOT Then
-
-			Self._tokeniser.getNextToken()
-
-			val	= Self.parseValue()
-
-			If self._evalMode <> MODE_PARSE_ONLY Then
-				Return ScriptObjectFactory.NewBool(Not(val.valueBool()))
-			EndIf
-
-			Return Null
-
-		EndIf
-
-		' Keywords (big chunk of code)
-		If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_KEYWORD Then
-			Local functionOrPropertyName:String = Self._tokeniser.tokenText
-
-			' Something different - possibly a function name or a property.
-
-			' TODO: Switch off "ignore whitespace" as properties shouldn't contain spaces?
-			Self._tokeniser.getNextToken()
-
-			Local args:ScriptObject[]
-			Local isFunction:Byte = False
-
-			' TODO: Shouldn't require the double colon for property or function names.
-
-			' Get the current property or function name
-			If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_DOUBLE_COLON Then
-
-				' Function
-				isFunction = True
-				functionOrPropertyName = functionOrPropertyName + "::"
+			' In a string.
+			Case ExpressionTokeniser.TOKEN_STRING
+				val = ScriptObjectFactory.NewString(Self._tokeniser.tokenText)
 				Self._tokeniser.getNextToken()
+				Return val
 
-				' Check the :: is followed by a keyword
-				If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_KEYWORD Then
-					RuntimeError("Function name expected")
+			' NOT
+			Case ExpressionTokeniser.TOKEN_NOT
+				Self._tokeniser.getNextToken()
+				val	= Self.parseValue()
+
+				If self._evalMode <> MODE_PARSE_ONLY Then
+					Return ScriptObjectFactory.NewBool(Not(val.valueBool()))
 				EndIf
 
-				functionOrPropertyName = functionOrPropertyName + Self._tokeniser.tokenText
+				Return Null
+
+			' Keywords (could be a function or a variable)
+			Case ExpressionTokeniser.TOKEN_KEYWORD
+				Local functionOrPropertyName:String = Self._tokeniser.tokenText
+
+				' Something different - possibly a function name or a property.
+
+				' TODO: Switch off "ignore whitespace" as properties shouldn't contain spaces?
 				Self._tokeniser.getNextToken()
 
-			ElseIf Not CharHelper.isAsciiWhitespace(Self._tokeniser.currentToken) Then
+				Local args:ScriptObject[]
+				Local isFunction:Byte = False
 
-				' Property
-				' TODO: This is so ugly it hurts. Fix it.
-				While(Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_DOT Or Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_MINUS Or Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_KEYWORD Or Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_NUMBER)
+				' TODO: Shouldn't require the double colon for property or function names.
+
+				' Get the current property or function name
+				If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_DOUBLE_COLON Then
+
+					' Function
+					isFunction = True
+					functionOrPropertyName = functionOrPropertyName + "::"
+					Self._tokeniser.getNextToken()
+
+					' Check the :: is followed by a keyword
+					If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_KEYWORD Then
+						RuntimeError("Function name expected")
+					EndIf
+
 					functionOrPropertyName = functionOrPropertyName + Self._tokeniser.tokenText
 					Self._tokeniser.getNextToken()
-				Wend
 
-			EndIf
+				ElseIf Not CharHelper.isAsciiWhitespace(Self._tokeniser.currentToken) Then
 
-			' Switch whitespace back on.
-			Self._tokeniser.ignoreWhitespace = True
+					' Property
+					' TODO: This is so ugly it hurts. Fix it.
+					While(Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_DOT Or Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_MINUS Or Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_KEYWORD Or Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_NUMBER)
+						functionOrPropertyName = functionOrPropertyName + Self._tokeniser.tokenText
+						Self._tokeniser.getNextToken()
+					Wend
 
-			' If we're at a space, get the next token.
-			If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_WHITESPACE Then
-				Self._tokeniser.getNextToken()
-			EndIf
+				EndIf
 
-			' Extract function arguments.
-			If isFunction Then
-				args = Self.parseFunctionArgs(functionOrPropertyName)
-			EndIf
+				' Switch whitespace back on.
+				Self._tokeniser.ignoreWhitespace = True
 
-			' Either run a function or get a property value
-			If self._evalMode = MODE_PARSE_ONLY Then Return Null
+				' If we're at a space, get the next token.
+				If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_WHITESPACE Then
+					Self._tokeniser.getNextToken()
+				EndIf
 
-			If isFunction
-				Return Self.evaluateFunction(functionOrPropertyName, args)
-			Else
-				Return Self.evaluateProperty(functionOrPropertyName)
-			EndIf
+				' Extract function arguments.
+				If isFunction Then
+					args = Self.parseFunctionArgs(functionOrPropertyName)
+				EndIf
 
-		EndIf
+				' Either run a function or get a property value
+				If self._evalMode = MODE_PARSE_ONLY Then Return Null
 
-		Return Null
+				If isFunction
+					Return Self.evaluateFunction(functionOrPropertyName, args)
+				Else
+					Return Self.evaluateProperty(functionOrPropertyName)
+				EndIf
+
+		End Select
+
+		Return val
 
 	End Method
 
