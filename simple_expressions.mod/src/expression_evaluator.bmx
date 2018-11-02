@@ -260,8 +260,9 @@ Type ExpressionEvaluator
 				Case ExpressionTokeniser.TOKEN_EQUAL
 					Return ScriptObjectFactory.NewBool(leftSide.equals(rightSide))
 
+				' Not equal to
 				Case ExpressionTokeniser.TOKEN_NOT_EQUAL
-					Return ScriptObjectFactory.NewBool(leftSide <> rightSide)
+					Return ScriptObjectFactory.NewBool(leftSide.notEquals(rightSide))
 
 				Case ExpressionTokeniser.TOKEN_LT
 					Return ScriptObjectFactory.NewBool(Int(leftSide.ToString()) < Int(rightSide.ToString()))

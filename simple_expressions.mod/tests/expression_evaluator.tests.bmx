@@ -220,6 +220,46 @@ Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 
 
 	' ------------------------------------------------------------
+	' -- Not Equals
+	' ------------------------------------------------------------
+
+	Method testNotEqualAcceptsCStyleSyntax() { test }
+		Self._testExpressionBool(False, "true != true")
+		Self._testExpressionBool(True, "true != false")
+		Self._testExpressionBool(True, "false != true")
+		Self._testExpressionBool(False, "false != false")
+	End Method
+
+	Method testNotEqualAcceptsBasicStyleSyntax() { test }
+		Self._testExpressionBool(False, "true <> true")
+		Self._testExpressionBool(True, "true <> false")
+		Self._testExpressionBool(True, "false <> true")
+		Self._testExpressionBool(False, "false <> false")
+	End Method
+
+	Method testNotEqualAcceptsIntegers() { test }
+		Self._testExpressionBool(False, "2 <> 2")
+		Self._testExpressionBool(True, "2 <> 1")
+		Self._testExpressionBool(True, "1 <> 2")
+		Self._testExpressionBool(False, "1 <> 1")
+	End Method
+
+	Method testNotEqualAcceptsFloats() { test }
+		Self._testExpressionBool(False, "2.5 <> 2.5")
+		Self._testExpressionBool(True, "2.5 <> 1.5")
+		Self._testExpressionBool(True, "1.5 <> 2.5")
+		Self._testExpressionBool(False, "1.5 <> 1.5")
+	End Method
+
+	Method testNotEqualAcceptsStrings() { test }
+		Self._testExpressionBool(False, "'two' <> 'two'")
+		Self._testExpressionBool(True, "'two' <> 'one'")
+		Self._testExpressionBool(True, "'one' <> 'two'")
+		Self._testExpressionBool(False, "'one' <> 'one'")
+	End Method
+	
+
+	' ------------------------------------------------------------
 	' -- Custom Function Tests
 	' ------------------------------------------------------------
 

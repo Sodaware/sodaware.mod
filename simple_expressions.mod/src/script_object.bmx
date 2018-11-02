@@ -225,6 +225,11 @@ Type ScriptObject
 
 	End Function
 
+
+	' ------------------------------------------------------------
+	' -- Comparing Values
+	' ------------------------------------------------------------
+
 	Method equals:Byte(with:ScriptObject)
 		If Self._type <> with._type Then Return False
 
@@ -240,6 +245,24 @@ Type ScriptObject
 
 			Case OBJECT_BOOL
 				Return Self.valueBool() = with.valueBool()
+		End Select
+	End Method
+
+	Method notEquals:Byte(with:ScriptObject)
+		If Self._type <> with._type Then Return True
+
+		Select Self._Type
+			Case OBJECT_STRING
+				Return Self.valueString() <> with.valueString()
+
+			Case OBJECT_INT
+				Return Self.valueInt() <> with.valueInt()
+
+			Case OBJECT_FLOAT
+				Return Self.valueFloat() <> with.valueFloat()
+
+			Case OBJECT_BOOL
+				Return Self.valueBool() <> with.valueBool()
 		End Select
 	End Method
 
