@@ -15,6 +15,7 @@ Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 		Self._evaluator = New ExpressionEvaluator
 	End Method
 
+
 	' ------------------------------------------------------------
 	' -- Evaluation Tests
 	' ------------------------------------------------------------
@@ -117,7 +118,10 @@ Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 		Self._testExpressionF(6.25, "2.5 * 2.5")
 	End Method
 
-	
+	Method testCanDivideFloats() { test }
+		Self._testExpressionF(2.5, "6.25 / 2.5")
+	End Method
+
 
 	' ------------------------------------------------------------
 	' -- String Tests
@@ -275,16 +279,15 @@ Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 
 	' Internal helper - test an expression evaluations to a specific string
 	Method _testExpression(expected:String, expression:String, message:String = "")
-		Local eval:ExpressionEvaluator = New ExpressionEvaluator
-		Local res:ScriptObject = eval.Evaluate(expression)
+		Local res:ScriptObject = Self._evaluator.evaluate(expression)
 		Self.assertEquals(expected, res.ValueString(), message)
 	End Method
 
 	' Internal helper - test an expression evaluations to a boolean
 	Method _testExpressionBool(expected:Byte, expression:String, message:String = "")
-		Local eval:ExpressionEvaluator = New ExpressionEvaluator
-		Local res:ScriptObject = eval.Evaluate(expression)
+		Local res:ScriptObject = Self._evaluator.evaluate(expression)
 
+		If res = Null Then Throw expression
 		If message = "" Then message = "`" + expression + "`"
 
 		If expected Then

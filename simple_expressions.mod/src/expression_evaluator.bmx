@@ -202,6 +202,7 @@ Type ExpressionEvaluator
 			Local rightSide:ScriptObject = self.parseBooleanAnd()
 
 			If Self._evalMode <> MODE_PARSE_ONLY Then
+				' TODO: Can be use the global true/false values here?
 				leftSide = ScriptObjectFactory.NewBool(leftSide.valueBool() Or rightSide.valueBool())
 			EndIf
 
@@ -257,7 +258,7 @@ Type ExpressionEvaluator
 
 				' Equals operator
 				Case ExpressionTokeniser.TOKEN_EQUAL
-					Return ScriptObjectFactory.NewBool(leftSide = rightSide)
+					Return ScriptObjectFactory.NewBool(leftSide.equals(rightSide))
 
 				Case ExpressionTokeniser.TOKEN_NOT_EQUAL
 					Return ScriptObjectFactory.NewBool(leftSide <> rightSide)
@@ -687,15 +688,6 @@ Type ExpressionEvaluator
 	' ------------------------------------------------------------
 	' -- Creation / Destruction
 	' ------------------------------------------------------------
-
-	' TODO: Remove this!'
-	Function Create:ExpressionEvaluator(expression:String)
-
-		Local this:ExpressionEvaluator = New ExpressionEvaluator
-		this.setExpression(expression)
-		Return this
-
-	End Function
 
 	Method New()
 		Self._tokeniser           = New ExpressionTokeniser

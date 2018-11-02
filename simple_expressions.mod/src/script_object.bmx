@@ -225,4 +225,22 @@ Type ScriptObject
 
 	End Function
 
+	Method equals:Byte(with:ScriptObject)
+		If Self._type <> with._type Then Return False
+
+		Select Self._Type
+			Case OBJECT_STRING
+				Return Self.valueString() = with.valueString()
+
+			Case OBJECT_INT
+				Return Self.valueInt() = with.valueInt()
+
+			Case OBJECT_FLOAT
+				Return Self.valueFloat() = with.valueFloat()
+
+			Case OBJECT_BOOL
+				Return Self.valueBool() = with.valueBool()
+		End Select
+	End Method
+
 End Type
