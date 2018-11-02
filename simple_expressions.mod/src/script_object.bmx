@@ -266,4 +266,12 @@ Type ScriptObject
 		End Select
 	End Method
 
+	Method greaterThan:Byte(with:ScriptObject)
+		Return Self.toString() > with.toString()
+	End Method
+
+	Method lessThan:Byte(with:ScriptObject)
+		Return Self.toString() < with.toString()
+	End Method
+
 End Type

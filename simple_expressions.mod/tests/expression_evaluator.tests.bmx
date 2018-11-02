@@ -257,6 +257,38 @@ Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 		Self._testExpressionBool(True, "'one' <> 'two'")
 		Self._testExpressionBool(False, "'one' <> 'one'")
 	End Method
+
+	' ------------------------------------------------------------
+	' -- Not Equals
+	' ------------------------------------------------------------
+
+	Method testGreaterThanAcceptsBooleans() { test }
+		Self._testExpressionBool(False, "true > true")
+		Self._testExpressionBool(True, "true > false")
+		Self._testExpressionBool(False, "false > true")
+		Self._testExpressionBool(False, "false > false")
+	End Method
+
+	Method testGreaterThanAcceptsIntegers() { test }
+		Self._testExpressionBool(False, "2 > 2")
+		Self._testExpressionBool(True, "2 > 1")
+		Self._testExpressionBool(False, "1 > 2")
+		Self._testExpressionBool(False, "1 > 1")
+	End Method
+
+	Method testGreaterThanAcceptsFloats() { test }
+		Self._testExpressionBool(False, "2.5 > 2.5")
+		Self._testExpressionBool(True, "2.5 > 1.5")
+		Self._testExpressionBool(False, "1.5 > 2.5")
+		Self._testExpressionBool(False, "1.5 > 1.5")
+	End Method
+
+	Method testGreaterThanAcceptsStrings() { test }
+		Self._testExpressionBool(False, "'two' > 'two'")
+		Self._testExpressionBool(True, "'two' > 'one'")
+		Self._testExpressionBool(False, "'one' > 'two'")
+		Self._testExpressionBool(False, "'one' > 'one'")
+	End Method
 	
 
 	' ------------------------------------------------------------

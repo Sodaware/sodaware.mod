@@ -256,10 +256,10 @@ Type ExpressionEvaluator
 					Return ScriptObjectFactory.NewBool(leftSide.notEquals(rightSide))
 
 				Case ExpressionTokeniser.TOKEN_LT
-					Return ScriptObjectFactory.NewBool(Int(leftSide.ToString()) < Int(rightSide.ToString()))
+					Return Self._bool(leftSide.lessThan(rightSide))
 
 				Case ExpressionTokeniser.TOKEN_GT
-					Return ScriptObjectFactory.NewBool(Int(leftSide.ToString()) > Int(rightSide.ToString()))
+					Return Self._bool(leftSide.greaterThan(rightSide))
 
 				Case ExpressionTokeniser.TOKEN_LE
 					Return ScriptObjectFactory.NewBool(Int(leftSide.ToString()) <= Int(rightSide.ToString()))
@@ -653,6 +653,14 @@ Type ExpressionEvaluator
 
 
 	' ------------------------------------------------------------
+	''' <summary>Convert BlitzMax true/false into compatible boolean values.</summary>
+	Method _bool:ScriptObject(result:Int)
+		Select result
+			case True  ; Return Expression_Evaluator_True
+			Case False ; Return Expression_Evaluator_False
+		End Select
+	End Method
+
 	' -- Error handling
 	' ------------------------------------------------------------
 
