@@ -178,6 +178,12 @@ Type ExpressionTokeniser
 				charCode = Self._nextChar()
 			Wend
 
+			' Check for language keywords.
+			Select Self.tokenText.toLower()
+				Case "not"
+					Self.currentToken = TOKEN_NOT
+			End Select
+
 			Return 0
 		EndIf
 
@@ -218,6 +224,11 @@ Type ExpressionTokeniser
 			Self._setCurrentToken(TOKEN_GE, ">=")
 			Self._readChar()
 			Return 0
+		EndIf
+
+		' NOT shortcode
+		If charCode = ASC_EXCLAMATION Then
+			Return Self._setCurrentToken(TOKEN_NOT, "!")
 		EndIf
 
 		' Nothing else matches - treat as punctuation.
@@ -288,9 +299,11 @@ Type ExpressionTokeniser
 	' -- Internal tokenising methods
 	' ------------------------------------------------------------
 
-	Method _setCurrentToken(tokenType:Byte, tokenText:String)
+	Method _setCurrentToken:Byte(tokenType:Byte, tokenText:String)
 		Self.currentToken = tokenType
 		Self.tokenText    = tokenText
+
+		Return tokenType
 	End Method
 
 	Method _readString:String()

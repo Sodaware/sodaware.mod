@@ -94,7 +94,8 @@ Type ExpressionEvaluator
 		Next
 	End Method
 
-	Method setExpression(expression:String)
+	''' <summary>Set the expression to be used and reset the internal state.</summary>
+	Method _setExpression(expression:String)
 		Self._evalMode = MODE_EVALUATE
 		Self._tokeniser.setExpression(expression)
 		Self._tokeniser.reset()
@@ -123,7 +124,7 @@ Type ExpressionEvaluator
 	Method evaluate:ScriptObject(expression:String = "")
 
 		' Set the expression.
-		Self.setExpression(expression)
+		Self._setExpression(expression)
 
 		' Run the expression.
 		Local result:ScriptObject = Self.parseExpression()
@@ -462,14 +463,14 @@ Type ExpressionEvaluator
 
 		' Boolean "NOT"
 		' TODO: fix this to use a constant for the keyword.
-		If Self._tokeniser.IsKeyword("not") Then
+		If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_NOT Then
 
 			Self._tokeniser.getNextToken()
 
 			val	= Self.parseValue()
 
 			If self._evalMode <> MODE_PARSE_ONLY Then
-				Return ScriptObjectFactory.NewInt(Not(val.valueInt()))
+				Return ScriptObjectFactory.NewBool(Not(val.valueBool()))
 			EndIf
 
 			Return Null

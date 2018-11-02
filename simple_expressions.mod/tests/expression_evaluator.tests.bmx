@@ -158,6 +158,64 @@ Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 
 
 	' ------------------------------------------------------------
+	' -- NOT
+	' ------------------------------------------------------------
+
+	Method testNotConvertsBooleansCorrectly() { test }
+		Self._testExpressionBool(False, "not true")
+		Self._testExpressionBool(True, "not false")
+	End Method
+
+	Method testNotAcceptsExclamationShortcode() { test }
+		Self._testExpressionBool(False, "!true")
+		Self._testExpressionBool(True, "!false")
+		Self._testExpressionBool(False, "! true")
+		Self._testExpressionBool(True, "! false")
+	End Method
+
+
+	' ------------------------------------------------------------
+	' -- Equality
+	' ------------------------------------------------------------
+
+	Method testEqualityCanAcceptBooleanValues() { test }
+		Self._testExpressionBool(True, "true == true")
+		Self._testExpressionBool(False, "true == false")
+		Self._testExpressionBool(False, "false == true")
+		Self._testExpressionBool(True, "false == false")
+	End Method
+
+	Method testEqualityCanAcceptIntegerValues() { test }
+		Self._testExpressionBool(True, "1 == 1")
+		Self._testExpressionBool(False, "1 == 0")
+		Self._testExpressionBool(False, "0 == 1")
+		Self._testExpressionBool(True, "0 == 0")
+	End Method
+
+	Method testEqualityCanAcceptFloatingPointValues() { test }
+		Self._testExpressionBool(True, "1.0 == 1.0")
+		Self._testExpressionBool(False, "1.0 == 0.0")
+		Self._testExpressionBool(False, "0.0 == 1.0")
+		Self._testExpressionBool(True, "0.0 == 0.0")
+	End Method
+
+	Method testEqualityCanAcceptStringValues() { test }
+		Self._testExpressionBool(True, "'yes' == 'yes'")
+		Self._testExpressionBool(False, "'yes' == 'no'")
+		Self._testExpressionBool(False, "'no' == 'yes'")
+		Self._testExpressionBool(True, "'no' == 'no'")
+	End Method
+
+	Method testEqualityCanAcceptPropertyValues() { test }
+		Self._evaluator.registerIntProperty("value_1", 1)
+		Self._testExpressionBool(True, "1 == value_1")
+
+		Self._evaluator.registerStringProperty("value_two", "two")
+		Self._testExpressionBool(True, "'two' == value_two")
+	End Method
+
+
+	' ------------------------------------------------------------
 	' -- Custom Function Tests
 	' ------------------------------------------------------------
 
