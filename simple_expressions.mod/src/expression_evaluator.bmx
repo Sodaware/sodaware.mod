@@ -29,12 +29,13 @@ Type ExpressionEvaluator
 	Const MODE_EVALUATE:Byte   = 1
 	Const MODE_PARSE_ONLY:Byte = 2
 
-	' General use fields.
+	' Internal configuration.
 	Field _evalMode:Byte
 	Field _tokeniser:ExpressionTokeniser
-	Field _registeredFunctions:TMap
 
-	' BlitzBuild specific fields.
+	' Custom functions and properties.
+	' TODO: Convert these to strongly-typed collections for speed's sake.
+	Field _registeredFunctions:TMap
 	Field _properties:TMap
 
 
@@ -45,21 +46,22 @@ Type ExpressionEvaluator
 	''' <summary>
 	''' Register a FunctionSet with the evaluator.
 	'''
-	''' Scans the set object for public methods (i.e. no `_` prefix) that
-	''' have a name set in their meta data. These methods are then available
-	''' for use in expressions.
+	''' Scans the object for public methods (i.e. no `_` prefix) that have a
+	''' name set in their meta data. These methods are then available for use
+	''' in expressions.
 	''' <summary>
-	''' <param name="set">The FunctionSet object to add.</param>
+	''' <param name="set">The FunctionSet object to add methods from.</param>
 	Method registerFunctionSet(set:FunctionSet)
 
 		Local setType:TTypeId = TTypeId.ForObject(set)
 		For Local fnc:TMethod = EachIn setType.EnumMethods()
 
-			' Skip private methods and constructor.
+			' Skip private methods and constructor by default.
 			If fnc.Name().StartsWith("_") Or fnc.Name() = "New" Then Continue
 
 			' Get function call name from meta.
 			Local name:String = fnc.MetaData("name")
+
 			' Register the function if it has a name.
 			If name <> "" Then
 				Self._registeredFunctions.Insert(name, SimpleExpressions_Function.Create(set, fnc))
@@ -92,13 +94,6 @@ Type ExpressionEvaluator
 		For Local keyName:String = EachIn propertyList.Keys()
 			Self.registerStringProperty(keyName, String(propertyList.valueForKey(keyName)))
 		Next
-	End Method
-
-	''' <summary>Set the expression to be used and reset the internal state.</summary>
-	Method _setExpression(expression:String)
-		Self._evalMode = MODE_EVALUATE
-		Self._tokeniser.setExpression(expression)
-		Self._tokeniser.reset()
 	End Method
 
 
@@ -196,8 +191,7 @@ Type ExpressionEvaluator
 			Local rightSide:ScriptObject = self.parseBooleanAnd()
 
 			If Self._evalMode <> MODE_PARSE_ONLY Then
-				' TODO: Don't call `NewBool` here - use a helper to return one of the two private globals (to prevent creating lots of objects)
-				leftSide = ScriptObjectFactory.NewBool(leftSide.valueBool() Or rightSide.valueBool())
+				leftSide = Self._bool(leftSide.valueBool() Or rightSide.valueBool())
 			EndIf
 
 		Wend
@@ -221,7 +215,7 @@ Type ExpressionEvaluator
 			Local rightSide:ScriptObject = Self.parseRelationalExpression()
 
 			If Self._evalMode <> MODE_PARSE_ONLY Then
-				leftSide = ScriptObjectFactory.NewBool(leftSide.valueBool() And rightSide.valueBool())
+				leftSide = Self._bool(leftSide.valueBool() And rightSide.valueBool())
 			EndIf
 		Wend
 
@@ -249,11 +243,11 @@ Type ExpressionEvaluator
 
 				' Equals operator
 				Case ExpressionTokeniser.TOKEN_EQUAL
-					Return ScriptObjectFactory.NewBool(leftSide.equals(rightSide))
+					Return Self._bool(leftSide.equals(rightSide))
 
 				' Not equal to
 				Case ExpressionTokeniser.TOKEN_NOT_EQUAL
-					Return ScriptObjectFactory.NewBool(leftSide.notEquals(rightSide))
+					Return Self._bool(leftSide.notEquals(rightSide))
 
 				Case ExpressionTokeniser.TOKEN_LT
 					Return Self._bool(leftSide.lessThan(rightSide))
@@ -262,7 +256,7 @@ Type ExpressionEvaluator
 					Return Self._bool(leftSide.greaterThan(rightSide))
 
 				Case ExpressionTokeniser.TOKEN_LE
-					Return ScriptObjectFactory.NewBool(Int(leftSide.ToString()) <= Int(rightSide.ToString()))
+					Return Self._bool(Int(leftSide.ToString()) <= Int(rightSide.ToString()))
 
 				Case ExpressionTokeniser.TOKEN_GE
 					Return ScriptObjectFactory.NewBool(Int(leftSide.ToString()) >= Int(rightSide.ToString()))
@@ -457,7 +451,7 @@ Type ExpressionEvaluator
 				val	= Self.parseValue()
 
 				If self._evalMode <> MODE_PARSE_ONLY Then
-					Return ScriptObjectFactory.NewBool(Not(val.valueBool()))
+					Return Self._bool(Not val.valueBool())
 				EndIf
 
 				Return Null
@@ -494,17 +488,13 @@ Type ExpressionEvaluator
 
 				ElseIf Not CharHelper.isAsciiWhitespace(Self._tokeniser.currentToken) Then
 
-					' Property
-					' TODO: This is so ugly it hurts. Fix it.
-					While(Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_DOT Or Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_MINUS Or Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_KEYWORD Or Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_NUMBER)
-						functionOrPropertyName = functionOrPropertyName + Self._tokeniser.tokenText
+					' Property. Add any token text that can be used in a name.
+					While Self._tokeniser.isNameToken()
+						functionOrPropertyName :+ Self._tokeniser.tokenText
 						Self._tokeniser.getNextToken()
 					Wend
 
 				EndIf
-
-				' Switch whitespace back on.
-				Self._tokeniser.ignoreWhitespace = True
 
 				' If we're at a space, get the next token.
 				If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_WHITESPACE Then
@@ -516,9 +506,10 @@ Type ExpressionEvaluator
 					args = Self.parseFunctionArgs(functionOrPropertyName)
 				EndIf
 
-				' Either run a function or get a property value
+				' Don't bother evaluating if in parse only mode.
 				If self._evalMode = MODE_PARSE_ONLY Then Return Null
 
+				' Either run a function or get a property value
 				If isFunction
 					Return Self.evaluateFunction(functionOrPropertyName, args)
 				Else
@@ -600,11 +591,12 @@ Type ExpressionEvaluator
 	End Method
 
 	Method evaluateFunction:ScriptObject(functionName:String, argList:ScriptObject[] = Null)
-		' Get the function object
+		' Get the function object.
 		Local func:SimpleExpressions_Function = Self.getFunction(functionName)
 
 		' TODO: Throw a proper exception here.
 		If func = Null Then Throw "No handler found for function '" + functionName + "'"
+
 		Return func.execute(argList)
 	End Method
 
@@ -646,13 +638,16 @@ Type ExpressionEvaluator
 			Local set:FunctionSet = FunctionSet(setType.NewObject())
 
 			' Setup args
-			Self.RegisterFunctionSet(set)
+			Self.registerFunctionSet(set)
 		Next
 
 	End Method
 
 
 	' ------------------------------------------------------------
+	' -- Internal Helpers
+	' ------------------------------------------------------------
+
 	''' <summary>Convert BlitzMax true/false into compatible boolean values.</summary>
 	Method _bool:ScriptObject(result:Int)
 		Select result
@@ -661,6 +656,15 @@ Type ExpressionEvaluator
 		End Select
 	End Method
 
+	''' <summary>Set the expression to be used and reset the internal state.</summary>
+	Method _setExpression(expression:String)
+		Self._evalMode = MODE_EVALUATE
+		Self._tokeniser.setExpression(expression)
+		Self._tokeniser.reset()
+	End Method
+
+
+	' ------------------------------------------------------------
 	' -- Error handling
 	' ------------------------------------------------------------
 

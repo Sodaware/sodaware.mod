@@ -259,6 +259,15 @@ Type ExpressionTokeniser
 		Return False
 	End Method
 
+	Method isNameToken:Byte()
+		Select Self.currentToken
+			Case TOKEN_DOT     ; Return True
+			Case TOKEN_MINUS   ; Return True
+			Case TOKEN_KEYWORD ; Return True
+			Case TOKEN_NUMBER  ; Return True
+		end Select
+	End Method
+
 	''' <summary>Gets the TokenType for a character.</summary>
 	''' <oaram name="code">The character code.</param>
 	''' <returns>TokenType value.</returns>
