@@ -44,14 +44,14 @@ Type ExpressionEvaluator
 	' ------------------------------------------------------------
 
 	''' <summary>
-	''' Register a FunctionSet with the evaluator.
+	''' Register a function set object with the evaluator.
 	'''
 	''' Scans the object for public methods (i.e. no `_` prefix) that have a
 	''' name set in their meta data. These methods are then available for use
 	''' in expressions.
 	''' <summary>
 	''' <param name="set">The FunctionSet object to add methods from.</param>
-	Method registerFunctionSet(set:FunctionSet)
+	Method registerFunctionSet(set:SimpleExpressions_FunctionSet)
 
 		Local setType:TTypeId = TTypeId.ForObject(set)
 		For Local fnc:TMethod = EachIn setType.EnumMethods()
@@ -631,11 +631,11 @@ Type ExpressionEvaluator
 	Method __autoload()
 
 		' Auto add functionset objects
-		Local base:TTypeId = TTypeId.ForName("FunctionSet")
+		Local base:TTypeId = TTypeId.ForName("SimpleExpressions_FunctionSet")
 		For Local setType:TTypeId = EachIn base.DerivedTypes()
 
 			' Create a function set
-			Local set:FunctionSet = FunctionSet(setType.NewObject())
+			Local set:SimpleExpressions_FunctionSet = SimpleExpressions_FunctionSet(setType.NewObject())
 
 			' Setup args
 			Self.registerFunctionSet(set)

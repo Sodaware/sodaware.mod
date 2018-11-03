@@ -20,6 +20,7 @@ Import "char_helper.bmx"
 ''' <summary>Class for tokenising strings into something usable.</summary>
 Type ExpressionTokeniser
 
+	' Character lookup table (faster than `Chr`)
 	Global CHAR_LOOKUP:String[256]
 
 	' List of valid tokens
@@ -51,9 +52,6 @@ Type ExpressionTokeniser
 	Const TOKEN_DOT:Byte                = 27
 	Const TOKEN_DOUBLE_COLON:Byte       = 28
 
-	' -- Options
-	Field ignoreWhitespace:Byte         '''< Is whitespace ignored?
-
 	' -- Current token info.
 	Field currentToken:Byte             '''< Const TokenType for current token
 	Field tokenText:String              '''< Text of the current token
@@ -80,6 +78,7 @@ Type ExpressionTokeniser
 	' -- Public Getters
 	' ------------------------------------------------------------
 
+	''' <summary>Get the text of the current expression being tokenised.</summary>
 	Method getExpressionText:String()
 		Return Self._expressionText
 	End Method
@@ -89,7 +88,8 @@ Type ExpressionTokeniser
 	' -- Main API methods
 	' ------------------------------------------------------------
 
-	''' <summary>Move the to the next token and return it.</summary>
+	''' <summary>Move to the next token and return it.</summary>
+	''' <return>Token value. Will be one of the `TOKEN_` constants.</return>
 	Method getNextToken:Byte()
 
 		' TODO: Should this really throw an error?
@@ -97,10 +97,8 @@ Type ExpressionTokeniser
 			Throw "End of file reached"
 		EndIf
 
-		' Skip whitespace characters if they're being ignored.
-		If Self.ignoreWhitespace Then
-			Self._skipWhitespace()
-		EndIf
+		' Skip any whitespace characters.
+		Self._skipWhitespace()
 
 		' Check for end of file.
 		If Self._peekChar() = 0 Then
@@ -111,32 +109,6 @@ Type ExpressionTokeniser
 		' Read the next character.
 		Local charCode:Byte = Self._readChar()
 		Local char:String   = CHAR_LOOKUP[charCode]
-
-		' TODO: May remove this completely
-		rem
-		If Self.ignoreWhitespace = False And CharHelper.IsAsciiWhitespace(charCode) Then
-
-			Local curString:String
-			Local ch2:Byte
-
-			While (ch2 = Self._peekChar()) <> 0
-
-				If Not CharHelper.IsAsciiWhitespace(ch2) Then
-					Exit
-				EndIf
-
-				curString:String = curString:String + CHAR_LOOKUP[ch2]
-				Self._readChar()
-
-				Self.currentToken	= TOKEN_WHITESPACE
-				Self.tokenText		= curString:String
-
-			Wend
-
-			Return 0
-
-		EndIf
-		End rem
 
 		' Read strings.
 		If charCode = ASC_APOSTROPHE Then
@@ -360,14 +332,9 @@ Type ExpressionTokeniser
 	End Method
 
 	Method reset()
-
-		' Setup rules.
-		Self.ignoreWhitespace    = True
-
-		' Start tokenising
 		Self.getNextToken()
-
 	End Method
+
 
 	' ------------------------------------------------------------
 	' -- Creation and Destruction

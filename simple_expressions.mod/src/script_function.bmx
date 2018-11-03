@@ -4,6 +4,8 @@
 ' -- Base type for functions that can be executed in an expression. Each script
 ' -- function must extend this type and set a name and handler.
 ' --
+' -- The recommended method is to extend `FunctionSet` and use methods instead.
+' --
 ' -- This file is part of sodaware.mod (https://www.sodaware.net/sodaware.mod/)
 ' -- Copyright (c) 2009-2018 Phil Newton
 ' --
@@ -18,12 +20,10 @@ Import brl.reflection
 Import "script_object.bmx"
 Import "function_set.bmx"
 
-
 Type SimpleExpressions_Function
 
 	Field _fullName:String
-	' TODO: Replace FunctionSet with a generic object.
-	Field _parentSet:FunctionSet
+	Field _parentSet:SimpleExpressions_FunctionSet
 	Field _method:TMethod
 	Field _parameterCount:Int
 
@@ -34,14 +34,6 @@ Type SimpleExpressions_Function
 
 	Method getFullName:String()
 		Return Self._fullName
-	End Method
-
-	Method getArgList:TList()
-		Return New TList
-	End Method
-
-	Method _getParam:Object(offset:Int)
-
 	End Method
 
 	Method countFunctionParameters:Int()
@@ -63,7 +55,7 @@ Type SimpleExpressions_Function
 	' -- Creation
 	' ------------------------------------------------------------
 
-	Function Create:SimpleExpressions_Function(set:FunctionSet, handler:TMethod)
+	Function Create:SimpleExpressions_Function(set:SimpleExpressions_FunctionSet, handler:TMethod)
 		Local this:SimpleExpressions_Function = New SimpleExpressions_Function
 
 		this._parentSet      = set
