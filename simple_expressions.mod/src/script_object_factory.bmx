@@ -15,9 +15,19 @@ Type ScriptObjectFactory
 	Function FromObject:ScriptObject(val:Object)
 		Local objectType:TTypeId = TTypeId.ForObject(val)
 		Select objectType.Name().ToLower()
-			Case "string"	; Return ScriptObjectFactory.NewString(String(val))
-			Case "int"		; Return ScriptObjectFactory.NewInt(Int(val.ToString()))
-			Case "float"	; Return ScriptObjectFactory.NewFloat(Float(val.ToString()))
+
+			Case "string"
+				Return ScriptObjectFactory.NewString(String(val))
+
+			Case "int"
+				Return ScriptObjectFactory.NewInt(Int(val.ToString()))
+
+			Case "float"
+				Return ScriptObjectFactory.NewFloat(Float(val.ToString()))
+
+			Case "scriptobject"
+				Return val
+
 		End Select
 
 		Throw "Unknown type: " + objectType.Name()
