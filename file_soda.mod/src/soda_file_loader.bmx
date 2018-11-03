@@ -90,14 +90,14 @@ Type SodaFile_Loader
 			' { = start group
 			' } = end group
 		
-			' ; = new line
+			' ; = line terminator
 			' " = start / end string
 			' = = Assignment operator
 			' * = array modifier (i.e. entity is array)
 			
 			' Tokens:
-			' [[	= script start
-			' ]]	= script end
+			' [[	= raw text start
+			' ]]	= raw text end
 			' //	= Ignore rest of line
 			' /*	= multi-line comment start
 			' */	= multi-line comment end
@@ -243,7 +243,7 @@ Type SodaFile_Loader
 					'	Throw SodaFileUnterminatedLineException.Create(currentField)
 					'End If
 					
-					If inString Then 
+					If inString Then
 						currentValue:+ SodaFile_Loader.CHAR_LOOKUP[char]
 					Else 
 						Return group
