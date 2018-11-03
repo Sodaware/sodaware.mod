@@ -26,7 +26,7 @@ Type ScriptObjectFactory
 				Return ScriptObjectFactory.NewFloat(Float(val.ToString()))
 
 			Case "scriptobject"
-				Return val
+				Return ScriptObject(val)
 
 		End Select
 
