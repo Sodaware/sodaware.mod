@@ -37,7 +37,7 @@ Type ScriptObject
 	' ------------------------------------------------------------
 
 	Method valueBool:Byte()
-		Local val:String = Self._value.ToString().toLower()
+		Local val:String = Self.toString().toLower()
 		If val = 0 Then Return False
 		If val = "false" Then Return False
 
@@ -54,6 +54,14 @@ Type ScriptObject
 
 	Method valueString:String()
 		Return Self.toString()
+	End Method
+
+	Method isTrue:Byte()
+		Return True = Self.valueBool()
+	End Method
+
+	Method isFalse:Byte()
+		Return False = Self.valueBool()
 	End Method
 
 	Method toString:String()
