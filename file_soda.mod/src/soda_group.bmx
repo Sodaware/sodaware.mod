@@ -162,6 +162,10 @@ Type SodaGroup
 		Return String(Self.getField(fieldName, offset, defaultValue))
 	End Method
 	
+	Method getFieldInt:Int(fieldName:String, offset:Int = -1, defaultValue:Int = 0)
+		Return Int(Self.getFieldString(fieldName, offset, defaultValue))
+	End Method
+
 	Method getChildren:TList(name:String = "")
 		If name = "" Then Return Self._children
 		Local children:TList = New TList
