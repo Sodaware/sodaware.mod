@@ -214,6 +214,14 @@ Type SodaFile
 		Return SodaFile_Loader.load(url)
 	End Function
 	
+	Function LoadFromString:SodaFile(contents:String)
+		Local data:TBank = TBank.Create(contents.Length)
+		For Local char:Int = 0 To contents.Length - 1
+			data.PokeByte(char, contents[char])
+		Next
+		Return SodaFile.Load(ReadStream(data))
+	End Function
+
 	Method setValue(path:String, value:String)
 		
 		' First we try and get the variable
