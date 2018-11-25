@@ -1,0 +1,28 @@
+/**
+ * rules.soda
+ *
+ * Base rules set for Shining Online.
+ * @author Phil Newton
+ */
+
+[rules]
+{
+	show_rarities	= false;
+	
+	[interface]
+	{
+		menu_style 	= classic;
+		
+		[menu_images]
+		{
+			// TODO: Change this to resource links
+			icon_search		= "icon_search.png";
+		}
+		
+		[hover_effects]
+		{
+			[*]	{ effect = MENU_EFFECT_SCALE; 			scale_factor = 1.5; }
+			[*] { effect = MENU_EFFECT_SWITCH_FRAME;	frame_offset = 1; }
+		}
+	}
+}

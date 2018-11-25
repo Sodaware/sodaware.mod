@@ -1,0 +1,26 @@
+// Simple, 1 line comment
+
+/*
+Omni Comment 
+*/
+
+[group]
+{
+	variable1 = value;
+}
+
+[group_two]
+{
+	string_variable = "Some string [here]";
+	
+	[sub_group]
+	{
+		sub_group_field = true;
+	}
+	
+	empty_group:field_name1 = "Test value 1";
+	empty_group:field_name2 = "Test value 2";
+	empty_group:field_name3 = "Test value 3";
+	empty_group:field_name4 = "Test value 4";
+
+}

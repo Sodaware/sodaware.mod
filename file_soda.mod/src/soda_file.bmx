@@ -28,8 +28,8 @@ Include "soda_file_loader.bmx"
 Type SodaFile
 	
 	' TODO: Replace _groups with an objectbag?
-	Field _groups:TList     = New TList		'''< Internal list of of groups in this file
-	Field _queryCache:TMAP  = New TMAP		'''< Internal cache of query results
+	Field _groups:TList     = New TList	    '''< Internal list of of groups in this file
+	Field _queryCache:TMap  = New TMap      '''< Internal cache of query results
 	
 	
 	' ------------------------------------------------------------
@@ -41,11 +41,16 @@ Type SodaFile
 	Method getGroups:TList()
 		Return Self._groups
 	End Method
-	
+
+	''' <summary>Get a group at a specific index.</summary>
+	''' <param name="index">The index to retrieve.</param>
+	''' <returns>The group at the index, or null if not found.</returns>
 	Method getGroupAtIndex:SodaGroup(index:Int)
 		Return SodaGroup(Self._groups.ValueAtIndex(index))
 	End Method
-	
+
+	''' <summary>Count the number of groups in this SodaFile.</summary>
+	''' <returns>The number of groups.</returns>
 	Method countGroups:Int()
 		Return Self._groups.Count()
 	End Method
@@ -93,8 +98,12 @@ Type SodaFile
 	' ------------------------------------------------------------
 	
 	''' <summary>
-	''' Run a query on this SodaFile. Returns either a group or the 
-	''' value of a field.
+	''' Run a query on this SodaFile.
+	'''
+	''' Use dots to access child attributes, and square brackets to access
+	''' an offset in an array.
+	'''
+	''' Returns either a group or the value of a field.
 	''' </summary>
 	''' <param name="qry">The query to execute.</param>
 	''' <returns>Null for invalid queries, or a group/field value.</returns>
@@ -109,9 +118,9 @@ Type SodaFile
 		
 		' Split the query into identifier chunks.
 		Local identifiers:String[] = qry.Split(".")
-		Local rootGroup:SodaGroup = Self.GetGroup(SodaFile_Util.GetName(identifiers[0]), SodaFile_Util.GetOffset(identifiers[0]))
+		Local rootGroup:SodaGroup = Self.getGroup(SodaFile_Util.GetName(identifiers[0]), SodaFile_Util.GetOffset(identifiers[0]))
 		
-		' If no valid base group was found return an empty result.
+		' Return an empty result ff no valid base group was found.
 		If rootGroup = Null Then Return Null
 		
 		' Store the found value in the query cache and return it.
@@ -167,26 +176,26 @@ Type SodaFile
 		Return nodes
 		
 	End Method
-	
+
+	''' <summary>Get a group from a SodaFile by its identifier.</summary>
+	''' <param name="name">The name of the group to retrieve. Case-sensitive.</param>
+	''' <param name="offset">Optional offset to retrieve if group is an array. Use -1 to ignore.</param>
+	''' <returns>The found group, or Null if not found.</returns>
 	Method getGroup:SodaGroup(name:String, offset:Int = -1)
 		
 		Local currentOffset:Int = 0
 	
 		For Local group:SodaGroup = EachIn Self._groups
-			If group.Identifier = name Then 
-				If group._isArray Then
-					If offset > -1 And currentOffset = offset Then 
-						Return group
-					Else
-						currentOffset:+ 1
-					EndIf
-					
-				Else
-					Return group
-				End If
+			If group.Identifier = name Then
+				If False = group._isArray Or offset = -1 Then Return group
+				If currentOffset = offset Then Return group
+
+				currentOffset:+ 1
 			EndIf
 		Next
-		
+
+		Return Null
+
 	End Method
 	
 	Function _getGroupName:String(path:String)

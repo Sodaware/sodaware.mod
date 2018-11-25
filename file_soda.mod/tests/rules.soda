@@ -1,0 +1,47 @@
+// -- Shining Online -- Rules file
+
+// Warp event:
+// newX, newY, newMap, facing
+
+// Give event:
+// Give item{ item id }
+// Give gold { gold_amount }
+
+
+[rules]
+{
+	show_rarities	= true;	
+}
+
+// Rarity Items
+[t:rarity,n:rarity_common]
+{
+	name = "Common"; 
+	background = "story://interface/item_bg_common.png";
+	text_color = #FFFFFF;
+}
+
+[t:rarity,n:rarity_uncommon]
+{
+	name = "Uncommon"; 
+	background = "story://interface/item_bg_uncommon.png";
+	text_color = #CEC315;
+}
+
+[t:rarity,n:rarity_rare]
+{
+	name "Rare";
+	background = "story://interface/item_bg_rare.png";
+	text_color = #00C0C0;
+}
+
+[t:rarity;n:rarity_unique]
+{
+	name 		= "Unique";
+	background	= "story://interface/item_bg_unique.png";
+	text_color 	= #C00000;
+}
+
+//rarities:
+//	common; blue background; white text;
+	

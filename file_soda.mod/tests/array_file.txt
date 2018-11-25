@@ -1,0 +1,39 @@
+// Content information
+[content_db] {
+	file*		= "story://content_db/weapons.ini";
+	file*		= "story://content_db/armour.ini";
+}
+
+[skill*]
+{
+	name	= "Ranged";
+	screen_name	= "Archer";
+
+	max_level = 180;
+
+	str_influence = 0.25;
+	dex_influence = 0.62;
+	int_influence = 0.13;
+
+	[level_up_indicator*] { level_range	= 1-5;		script = ranged_up_locked1, bip01; }
+	[level_up_indicator*] { level_range	= 6-10;		script = ranged_up_locked2, bip01; }
+	[level_up_indicator*] { level_range	= 11-20;	script = ranged_up_locked3, bip01; }
+	[level_up_indicator*] { level_range	= 21-250;	script = ranged_up_locked4, bip01; }
+}
+
+[skill*]
+{
+	name	= "Nature Magic";
+	screen_name	= "Nature Mage";
+	
+	max_level = 180;
+	
+	str_influence = 0.09;
+	dex_influence = 0.18;
+	int_influence = 0.73;
+
+	[level_up_indicator*] {	level_range	= 1-5;		script = gmagic_up_locked1, bip01; }
+	[level_up_indicator*] {	level_range	= 6-10;		script = gmagic_up_locked2, bip01; }
+	[level_up_indicator*] {	level_range	= 11-20;	script = gmagic_up_locked3, bip01; }
+	[level_up_indicator*] {	level_range	= 21-250;	script = gmagic_up_locked4, bip01; }
+}

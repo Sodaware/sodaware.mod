@@ -1,0 +1,306 @@
+/**
+ * components.soda
+ *
+ * All major components as used by Shining Online. This should probably be split
+ * into the local story file. Would also be nice to gather this information via
+ * reflection.
+ * 
+ * @author Phil Newton
+ */
+ 
+
+[t:component,n:team_member] {
+	doc	= "A member of the team";
+}
+
+
+[t:component,n:properties]
+{
+	doc	= "Properties!";
+}
+
+[t:component,n:common]
+{
+	doc	= "Shared attributes";
+	
+	[name]					{ type = string;	default = "";								doc = "Unique identifier";								}
+}
+
+[t:component,n:player]
+{
+	doc	= "Player only attributes";
+	
+}
+
+[t:component,n:scriptable]
+{
+	doc = "Lisp scriptable entities";
+	
+	[script]				{ type = string;		default = "";								doc = "Script to execute";	}
+}
+
+
+[t:component,n:interactive]
+{
+	doc = "Stuff used by interactive items";
+	
+	internal* = template_triggers;
+}
+
+/**
+ * Statistics for any kind of character in battle.
+ */
+[t:component,n:character] {
+    
+	doc = "Common attributes that all characters in battle have.";
+    
+    [name]                  { type = string; }
+	[max_hp]				{ type = int;		default = 1;								doc = "The maximum health points for this character";	}
+	[max_mp]				{ type = int;		default = 0;								doc = "The maximum magic points for a character.";		}
+
+    // Current levels
+	[current_hp]			{ type = int;		default = 1;								doc = "The current health points for this character";	}
+	[current_mp]			{ type = int;		default = 0;								doc = "The current magic points for a character.";		}
+	[experience]			{ type = int;		default = 0;								doc = "Amount of XP this character has";	}
+    [level]			        { type = int;		default = 1;								doc = "The character's level.";		}
+
+    
+	[attack]				{ type = int;		default = 0;								doc = "Attack";											}
+	[defense]				{ type = int;		default = 0;								doc = "Defense";										}
+	[agility]				{ type = int;		default = 0;								doc = "Agility";										}
+	[speed]					{ type = int;		default = 0;								doc = "The character's movement range";					}
+	[luck]					{ type = int;		default = 0;								doc = "Luck";											}
+	[critical]				{ type = int;		default = 0;								doc = "Critical";										}
+    
+	// Magic
+	[light_resist]			{ type = int;		default = 0;								doc = "Light magic resitance modifier"; 				}
+	[dark_resist]			{ type = int;		default = 0;								doc = "Dark magic resitance modifier"; 					}
+	[fire_resist]			{ type = int;		default = 0;								doc = "Fire magic resitance modifier"; 					}
+	[ice_resist]			{ type = int;		default = 0;								doc = "Ice magic resitance modifier"; 					}
+	[electric_resist]		{ type = int;		default = 0;								doc = "Electric resitance modifier"; 					}
+	[wind_resist]			{ type = int;		default = 0;								doc = "Wind resitance modifier"; 						}
+}
+
+/**
+ * Used for anything that can be carried by a character or enemy.
+ */
+[t:component,n:item]
+{
+	doc = "Common attributes that all items have";
+	
+	// Anything that goes in the inventory
+	[display_name]			{ type = string; 												doc = "The name of the object"; }
+	[icon]					{ type = string; 	default = "sonline.icons.unknown_item"; 	doc = "Icon that will be displayed for this item"; }
+	[description]			{ type = string; 												doc = "Description of the item"; }
+	[rarity]				{ type = string; 	default = rarity_common; 					doc = "How rare is this item?"; }
+	
+	// What it does
+	[can_use]				{ type = bool; 		default = false; 							doc = "Can this object be used in a town"; }
+	[can_use_in_battle] 	{ type = bool; 		default = false; 							doc = "Can this object be used in a battle"; }
+	[consumed_on_use]		{ type = bool;		default = false;							doc = "Is this item destroyed after being used?"; }
+	[is_quest_item] 		{ type = bool; 		default = false; 							doc = "Is this item required for a quest (i.e. can't be sold)"; }
+	[is_resource]			{ type = bool; 		default = false; 							doc = "Is this item a stackable resource?"; }
+	
+	[town_use_script]		{ type = string;												doc = "The animation script called when item is used in a town"; }
+	[battle_use_script]		{ type = string;												doc = "The animation script called when item is used in battle"; }
+	
+	// What's it worth?
+	[base_price]			{ type = int; 		default = 0; 								doc = "Price for this item"; }
+	
+	internal*				= effects;
+}
+
+/**
+ * Equipment specific values, such as ranges for weapons and stat modifiers.
+ * There are also extra fields for equipment set support and weapon classes.
+ */
+[t:component,n:equipment]
+{
+	// TODO: Add strong against / weak against / 
+	
+	[attack_range]			{ type = int;		default = 2;								doc = "The range of the weapon's attack. Include square character occupies."; 	}
+	[weapon_class]			{ type = string;												doc = "The class of this weapon";												}
+	[is_cursed]				{ type = bool;		default = false;							doc = "Is this weapon cursed?"; 												}
+	
+	[equip_set]				{ type = string; 												doc = "Optional set this item belongs to"; 										}
+	[equip_requirements] 	{ type = string; 												doc = "Requirements that must be met for this to be equippable"; 				}
+	[equip_slot]			{ type = string; 												doc = "Where can this item be equipped?"; 										}
+
+	// Enhancements
+	[attack]				{ type = int;		default = 0;								doc = "Attack plus / minus";			}
+	[defense]				{ type = int;		default = 0;								doc = "Defense plus / minus";			}
+	[agility]				{ type = int;		default = 0;								doc = "Agility plus / minus";			}
+	[speed]					{ type = int;		default = 0;								doc = "Speed plus / minus";				}
+	[luck]					{ type = int;		default = 0;								doc = "Luck plus / minus";				}
+	[critical]				{ type = int;		default = 0;								doc = "Critical plus / minus";			}
+
+	// Magic
+	[light_resist]			{ type = int;		default = 0;								doc = "Light magic resitance modifier"; }
+	[dark_resist]			{ type = int;		default = 0;								doc = "Dark magic resitance modifier"; 	}
+	[fire_resist]			{ type = int;		default = 0;								doc = "Fire magic resitance modifier"; 	}
+	[ice_resist]			{ type = int;		default = 0;								doc = "Ice magic resitance modifier"; 	}
+	[electric_resist]		{ type = int;		default = 0;								doc = "Electric resitance modifier"; 	}
+	[wind_resist]			{ type = int;		default = 0;								doc = "Wind resitance modifier"; 		}
+}
+
+[t:component;n:body] {
+	[x_pos]					{ type = int;		default = 0;								doc = "X position of body";	}
+	[y_pos]					{ type = int;		default = 0;								doc = "Y position of body";	}
+	[width]					{ type = int;		default = 0;								doc = "Width of the body";	}
+	[height]				{ type = int;		default = 0;								doc = "Height of the body";	}
+    [is_solid]        		{ type = bool; default = true; doc = "Can this body be passed through or is it blocking"; }
+}
+
+[t:component;n:render_body] {
+	[sprite_name]				{ type = string;	default = "";							doc = "The image resources to display for this entity";	}
+	[animation_name]			{ type = string;	default = "";							doc = "The sprite animation name";	}
+	[layer_name]				{ type = string;	default = "";							doc = "Optional layer name (not currently used)";	}
+}
+
+[t:component;n:map_body] {
+	internal* = map;
+	internal* = tileset;
+}
+
+/**
+ * Armour specific modifiers. May be merged with equipment.
+ */
+[t:component,n:armour]
+{
+	[placement]				{ type = string;	default = placement_body;					doc = "Where on the body this armour goes"; }
+}
+
+[t:component,n:placement]
+{
+	doc = "Represents a place on a body armour can go";
+	
+	[name]					{ type = string													doc = "The name of the placement"				}
+}
+
+// Item rarity
+[t:component,n:rarity]
+{
+	doc = "Represents how rare an item is.";
+
+	requires*	= item;
+
+	[name] 					{ type = string; 	default = "common"; 						doc = "The name of the rarity"; 				}
+	[background] 			{ type = string; 	default = "item_bg_common.png";				doc = "The background image to be displayed"; 	}
+	[text_color] 			{ type = string;	default = "#FFFFFF";						doc = "The text color in the inventory"; 		}
+}
+
+[t:component,n:status]
+{
+	doc = "Represents a status effect that a character can have";
+	
+	[name]					{ type = string;	default = "";								doc = "The name of the status effect";			}
+	[icon] 					{ type = string; 	default = "";								doc = "The icon to be displayed in the player's status screen"; 	}		
+	[description]			{ type = string; 	default = "";								doc = "Description of this effect"; }
+	[text]					{ type = string;	default = "";								doc = "The text displayed when this effect is added to a player";	}
+	[duration]				{ type = string;	default = "2";								doc = "The duration of the effect. Can be a single digit or a range"; }
+
+	internal* = effects;
+	
+	/* 
+	[effects]
+	{
+		[*]
+		{
+			per_turn	= false;
+			alteration	= reduce_defence;
+			value		= 10%;
+		}
+	}
+	*/
+}
+
+[t:component,n:inventory]
+{
+	doc = "Inventory";
+
+	[item_list] { type = list; doc = "Array of item identifiers" }
+	internal* = items;
+}
+
+[t:component,n:inventory_item] {
+	doc = "Maps items to entities";
+	
+	[belongs_to]     { type = string;	doc = "Tag of entity this item belongs to"; }
+	[item_slot]      { type = int; 		doc = "Item slot (1-4) this item is in"; }
+	[equipment_slot] { type = string;	doc = "Equipment slot (placement) this item is in"; }
+}
+
+/**
+ * Gadgets are basically triggers.
+ */
+[t:component,n:gadget]
+{
+	
+}
+
+[t:component,n:drop_chart] {
+    doc = "Represents an enemy's drop chart"
+    
+    [gold]  { type = int;    default = 0;  doc = "The amount of gold this enemy drops"; }
+    [items] { type = string; default = ""; doc = "Table of item drops"; }
+    
+}
+
+[t:component,n:class_info] {
+    doc = "Represents information about a single class"
+
+    [short_name]  { type = string; doc = "Short class name" }
+    [long_name]   { type = string; doc = "Long class name" }
+    [promoted_at] { type = int;    doc = "Level this class can be promoted" }
+    [allowed_weapons] { type = string; doc = "List of weapon classes allowed" }
+    
+}
+
+[t:component,n:playable] {
+    doc = "Represents information about a playable character"
+
+    [level]          { type = int; doc = "Level for current promotion" }
+    [global_level]   { type = int; doc = "Global level" }
+    [class]          { type = string; doc = "Player class" }
+}
+
+
+[t:component, n:placement_zone] {
+    doc = "Zone where stuff can be put";
+
+    [name] {
+        doc = "Optional display name.";
+        type = string;
+    }
+
+    [allow_placement] {
+        doc = "Can the player place these themselves";
+        type = bool;
+    }
+
+    [x_pos] {
+	    doc = "X position of zone";
+        type = int;
+	    default = 0;
+    }
+
+    [y_pos] {
+	    doc = "Y position of zone";
+        type = int;
+	    default = 0;
+
+    }
+
+    [width]	{
+        doc = "Width of the zone";
+        type = int;
+        default = 0;
+    }
+
+    [height]				{
+	    doc = "Height of the zone";
+        type = int;
+	    default = 0;
+    }
+
+}
