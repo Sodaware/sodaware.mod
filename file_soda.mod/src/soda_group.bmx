@@ -14,11 +14,12 @@ SuperStrict
 
 Import brl.linkedlist
 Import brl.map
+
 Import sodaware.blitzmax_ascii
+Import sodaware.stringtable
 
 Import "soda_field.bmx"
 Import "soda_file_util.bmx"
-
 
 Type SodaGroup
 
@@ -26,9 +27,9 @@ Type SodaGroup
 	
 	Field Identifier:String     = ""
 	
-	Field _isArray:Int          = False
+	Field _isArray:Byte         = False
 
-	Field _meta:TMap            = New TMap
+	Field _meta:StringTable     = New StringTable
 	Field _fields:TMap          = New TMap
 	Field _numberOfFields:Int   = 0
 	
@@ -176,11 +177,11 @@ Type SodaGroup
 	End Method
 	
 	Method getMeta:String(name:String)
-		Return String( Self._meta.ValueForKey(name.ToLower()) )
+		Return Self._meta.get(name.ToLower())
 	End Method
 
 	Method setMeta(name:String, value:String)
-		Self._meta.Insert(name, value)
+		Self._meta.set(name, value)
 	End Method
 
 	
@@ -249,13 +250,13 @@ Type SodaGroup
 		' Go through fields, splitting into names / meta
 		For Local fieldPair:String = EachIn fields
 			Local pairs:String[] = fieldPair.Split(":")
-			Self._meta.Insert(pairs[0].ToLower(), pairs[1])
+			Self._meta.set(pairs[0].ToLower(), pairs[1])
 		Next
 		
 		If Self._meta.IsEmpty() Then 
 			Self.Identifier = identifierText 
 		else
-			Self.Identifier = String(Self._meta.ValueForKey("n"))
+			Self.Identifier = Self._meta.get("n")
 		EndIf
 		
 	End Method
