@@ -20,22 +20,13 @@ Type IniFileSection
 	Field _name:String
 	Field _values:TMap
 
+
+	' ------------------------------------------------------------
+	' -- Querying
+	' ------------------------------------------------------------
+
 	Method getName:String()
 		Return Self._name
-	End Method
-
-	Method getKeyNames:String[]()
-		Local keyNames:TList = New TList
-		For Local s:String = EachIn Self._values.Keys()
-			keyNames.AddLast(s)
-		Next
-
-		Local keyNameArray:String[] = New String[keyNames.Count()]
-		For Local i:Int = 0 To keyNameArray.Length - 1
-			keyNameArray[i] = keyNames.ValueAtIndex(i).ToString()
-		Next
-		Return keyNameArray
-
 	End Method
 
 	Method setValue(keyName:String, value:String)
@@ -50,24 +41,32 @@ Type IniFileSection
 		Self._values.Remove(keyName)
 	End Method
 
+	Method getKeyNames:String[]()
+		Local keyNames:TList = New TList
+
+		For Local key:String = EachIn Self._values.Keys()
+			keyNames.AddLast(key)
+		Next
+
+		Return String[](keyNames.ToArray())
+	End Method
+
 
 	' ------------------------------------------------------------
 	' -- String Output
 	' ------------------------------------------------------------
 
 	Method toString:String()
-
-		' Write header
+		' Write header.
 		Local output:String = "[" + Self._name + "]~n"
 
-		' Write each key
+		' Write each key.
 		For Local keyName:String = EachIn Self._values.Keys()
 			output :+ keyName + "=" + Self.getValue(keyName) + "~n"
 		Next
 
-		' End with an extra blank line
+		' End with an extra blank line.
 		Return output + "~n"
-
 	End Method
 
 
@@ -77,7 +76,9 @@ Type IniFileSection
 
 	Function Create:IniFileSection(name:String)
 		Local this:IniFileSection = New IniFileSection
+
 		this._name = name
+
 		Return this
 	End Function
 

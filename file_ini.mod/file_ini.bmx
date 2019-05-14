@@ -35,8 +35,8 @@ Type File_INI
 
 	Function LoadFile:IniFile(url:Object)
 
-		' Don't load if the stream is bad
-		Local fileIn:TStream = ReadFile(url)		
+		' Don't load if the stream is invalid.
+		Local fileIn:TStream = ReadFile(url)
 		If fileIn = Null Then Return Null
 
 		' Read each line of the file
@@ -46,12 +46,11 @@ Type File_INI
 		Local currentSection:String = ""
 
 		While Not fileIn.Eof()
-
 			' Read each line and clean it up.
 			line = fileIn.ReadLine()
 			line = File_INI._CleanLine(line)
 
-			' Skip empty lines
+			' Skip empty lines.
 			If line = "" Then Continue
 
 			' If line is a section start, get the section name and add it
@@ -60,10 +59,9 @@ Type File_INI
 				result.addSection(currentSection)
 			ElseIf currentSection
 				' If in a section, add the key/value
-				currentPair = File_INI._ExtractParts(line)
-				result.setSectionValue(currentSection, currentPair[0], currentPair[1])
+				currentPair = File_INI._ExtractKeyVales(line)
+				result.set(currentSection, currentPair[0], currentPair[1])
 			End If
-
 		Wend
 
 		fileIn.Close()
@@ -84,19 +82,23 @@ Type File_INI
 
 	End Function
 
-	Function _CleanLine:String(line:String)
-		If line = Null Then Return ""
 
-		' Trim the line
+	' ------------------------------------------------------------
+	' -- Internal Helpers
+	' ------------------------------------------------------------
+
+	''' <summary>Strip all whitespace from a line.
+	Function _CleanLine:String(line:String)
 		line = line.Trim()
 
 		' Strip anything after the comments off.
-		Local cleanedLine:String
-		Local currentChar:Byte
-		Local inString:Byte = False
+		Local cleanedLine:String = ""
+		Local currentChar:Byte   = 0
+		Local inString:Byte      = False
 
 		For Local i:Int = 0 To line.Length - 1
 			currentChar = line[i]
+
 			If currentChar = ASC_QUOTE Then inString = Not(inString)
 			If Not(inString) And (currentChar = ASC_SEMI_COLON Or currentChar = ASC_HASH) Then Exit
 
@@ -104,24 +106,23 @@ Type File_INI
 		Next
 
 		Return cleanedLine.Trim()
-
 	End Function
 
-	Function _ExtractParts:String[](line:String)
+	Function _ExtractKeyVales:String[](line:String)
 		If line = Null Then Return Null
 
-		Local keyName:String
-		Local keyValue:String
-		Local currentChar:Byte
-		Local inString:Byte = False
-		Local inValue:Byte = False
+		Local keyName:String   = ""
+		Local keyValue:String  = ""
+		Local currentChar:Byte = 0
+		Local inString:Byte    = False
+		Local inValue:Byte     = False
 
 		For Local i:Int = 0 To line.Length - 1
 			currentChar = line[i]
 			If currentChar = ASC_QUOTE Then inString = Not(inString)
 
-			' If an `=` is found, move to the key name
-			If Not(inString) And currentChar = ASC_EQUALS Then
+			' If an `=` is found, move to the key name.
+			If currentChar = ASC_EQUALS = And Not(inString) Then
 				inValue = True
 				Continue
 			EndIf
