@@ -122,7 +122,7 @@ Type File_INI
 			If currentChar = ASC_QUOTE Then inString = Not(inString)
 
 			' If an `=` is found, move to the key name.
-			If currentChar = ASC_EQUALS = And Not(inString) Then
+			If currentChar = ASC_EQUALS And Not(inString) Then
 				inValue = True
 				Continue
 			EndIf
