@@ -1,78 +1,76 @@
 # sodaware.mod
 
-A bunch of general purpose modules for BlitzMax.
+A collection of general purpose modules for BlitzMax.
 
 
-# Module Overview
+## Module List
 
-blitzmax_array.mod
+**blitzmax_array.mod**
 : Merge and filter commands for arrays and linked lists.
 
-blitzmax_ascii
+**blitzmax_ascii**
 : Handy constants for working with ASCII values.
 
-blitzmax_injection
+**blitzmax_injection**
 : Dependency injection framework.
 
-console_color
+**console_color**
 : Add coloured text to terminal output.
 
-console_commandline
+**console_commandline**
 : Parse command line arguments and load them into an object.
 
-console_progressbar
+**console_progressbar**
 : Add a progress bar to terminal applications.
 
-console_rainbow
+**console_rainbow**
 : Rainbow text on terminal.
 
-file_config
+**file_config**
 : General purpose configuration object.
 
-file_config_iniserializer
+**file_config_iniserializer**
 : Load configuration from an INI file.
 
-file_config_sodaserializer
+**file_config_sodaserializer**
 : Load configuration from a SODA file.
 
-file_fnmatch
+**file_fnmatch**
 : File name pattern matcher.
 
-file_ini
+**file_ini**
 : Load and save INI files.
 
-file_soda
+**file_soda**
 : Custom file format that supports nested groups.
 
-file_ziphelper
+**file_ziphelper**
 : Helper functions for working with ZIP files.
 
-objectbag
+**objectbag**
 : Fast storage of objects in a flexible array.
 
-simple_expressions
+**simple_expressions**
 : Parse and execute simple expressions in strings.
 
-stringtable
+**stringtable**
 : Strongly-typed TMap for working with strings.
 
 
-# Installation Guide
+## Installation Guide
 
 Install modules by copying them to your BlitzMax modules directory. All
-sodaware.mod modules should live in the blitzmax/mod/sodaware.mod/
-directory.
+sodaware.mod modules should live in the blitzmax/mod/sodaware.mod/ directory.
 
-It's highly recommended to install all modules as some are dependent on
-others.
+It's highly recommended to install all modules as some are dependent on others.
 
 
-# Licence
+## Licence
 
 All modules are licenced under the LGPLv3.
 
-You may copy, distribute and modify the software provided that modifications
-are described and licensed for free under LGPL. Derivatives works (including
+You may copy, distribute and modify the software provided that modifications are
+described and licensed for free under LGPL. Derivatives works (including
 modifications or anything statically linked to the library) can only be
 redistributed under LGPL, but applications that use the library don't have to
 be.
