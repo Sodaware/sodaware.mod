@@ -42,13 +42,14 @@ Type IniFileSection
 	End Method
 
 	Method getKeyNames:String[]()
-		Local keyNames:TList = New TList
+		Local keyNames:String[]
 
 		For Local key:String = EachIn Self._values.Keys()
-			keyNames.AddLast(key)
+			keyNames = keyNames[..keyNames.Length + 1]
+			keyNames[keyNames.Length - 1] = key
 		Next
 
-		Return String[](keyNames.ToArray())
+		Return keyNames
 	End Method
 
 
