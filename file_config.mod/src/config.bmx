@@ -49,7 +49,7 @@ Type Config
 			EndIf
 		EndIf
 		
-		Return returnValue$
+		Return returnValue
 		
 	End Method
 		
