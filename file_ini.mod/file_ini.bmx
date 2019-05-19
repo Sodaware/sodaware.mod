@@ -70,16 +70,16 @@ Type File_INI
 
 	End Function
 
+	''' <summary>Save an IniFile to a file or stream.</summary>
+	''' <param name="url">The filename or stream to save to.</param>
+	''' <param name="ini">The ini file to save.</param>
 	Function Save(url:Object, ini:IniFile)
-
-		Local fileOut:TStream
-		fileOut = WriteStream(url)
+		Local fileOut:TStream = WriteStream(url)
 
 		If fileOut Then
 			fileOut.WriteString(ini.toString())
 			fileOut.Close()
 		End If
-
 	End Function
 
 
