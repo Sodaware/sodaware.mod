@@ -1,6 +1,6 @@
 ' ------------------------------------------------------------------------------
 ' -- sodaware.blitzmax_array
-' -- 
+' --
 ' -- Functions for working with arrays and linked lists.
 ' --
 ' -- This file is part of sodaware.mod (https://www.sodaware.net/sodaware.mod/)
@@ -25,6 +25,7 @@
 SuperStrict
 
 Module sodaware.blitzmax_array
+
 Import brl.linkedlist
 
 ' ------------------------------------------------------------
@@ -38,7 +39,7 @@ Import brl.linkedlist
 ''' <param name="inputArray">The array to operate on.</param>
 ''' <return>The first element of the array.</return>
 Function array_pull:Object(inputArray:Object[] Var)
-	
+
 	' Return null if the array is empty.
 	If inputArray.Length = 0 Then Return Null
 
@@ -63,7 +64,7 @@ End Function
 ''' <param name="inputArray">The array to operate on.</param>
 ''' <return>The last element of the array.</return>
 Function array_pop:Object(inputArray:Object[] Var)
-	
+
 	' Return null if the array is empty or invalid.
 	If inputArray.Length = 0 Then Return Null
 
@@ -90,27 +91,27 @@ Function array_merge:Object[](arr1:Object[], arr2:Object[])
 	' If one array is empty, no need to merge.
 	If arr1.Length = 0 Then Return arr2
 	If arr2.Length = 0 Then Return arr1
-	
+
 	' Create the new array.
 	Local result:Object[arr1.Length + arr2.Length]
 	Local i:Int
-	
+
 	For i = 0 To arr1.Length - 1
 		result[i] = arr1[i]
 	Next
-	
+
 	For i = 0 To arr2.Length - 1
 		result[i + arr1.Length] = arr2[i]
 	Next
-	
+
 	Return result
-	
+
 End Function
 
 ''' <summary>Add an element to the end of an array.</summary>
 ''' <param name="arr">The array to modify.</param>
 ''' <param name="obj">The element to add.</param>
-''' <return>A new array containing all elements of arr with obj added to the end.</return>
+''' <return>A new array containing all elements of `arr` with `obj` added to the end.</return>
 Function array_append:Object[](arr:Object[], obj:Object)
 	Local result:Object[arr.Length + 1]
 	For Local i:Int = 0 To arr.Length - 1
@@ -164,15 +165,15 @@ End Function
 ''' <param name="fn">Callback function that should take a single element.</param>
 ''' <return>A new TList containing filtered elements from inputList.</return>
 Function tlist_remove_if:TList(inputList:TList, fn:Byte(o:Object))
-	
+
 	Local filteredList:TList = New TList
-	
+
 	For Local obj:Object = EachIn inputList
 		If fn(obj) = False Then filteredList.AddLast(obj)
 	Next
-	
+
 	Return filteredList
-	
+
 End Function
 
 ''' <summary>Remove elements from a linked list if they do not pass the test in fn.</summary>
@@ -180,13 +181,13 @@ End Function
 ''' <param name="fn">Callback function that should take a single element.</param>
 ''' <return>A new TList containing filtered elements from inputList.</return>
 Function tlist_remove_if_not:TList(inputList:TList, fn:Byte(o:Object))
-	
+
 	Local filteredList:TList = New TList
-	
+
 	For Local obj:Object = EachIn inputList
 		If fn(obj) = True Then filteredList.AddLast(obj)
 	Next
-	
+
 	Return filteredList
-	
+
 End Function
