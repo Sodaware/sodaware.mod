@@ -46,13 +46,10 @@ Function array_pull:Object(inputArray:Object[] Var)
 	' Get the first element so it can be returned.
 	Local element:Object = inputArray[0]
 
-	' Create a replacement array with the first element missing
-	Local copy:Object[inputArray.Length - 1]
-	For Local i:Int = 0 To inputArray.Length - 2
-		copy[i] = inputArray[i + 1]
-	Next
-	inputArray = copy
+	' Resize the array.
+	inputArray = inputArray[1..]
 
+	' Return pulled element.
 	Return element
 
 End Function
@@ -71,12 +68,8 @@ Function array_pop:Object(inputArray:Object[] Var)
 	' Get the last element so it can be returned.
 	Local element:Object = inputArray[inputArray.Length - 1]
 
-	' Create a replacement array with the last element missing
-	Local copy:Object[inputArray.Length - 1]
-	For Local i:Int = 0 To inputArray.Length - 2
-		copy[i] = inputArray[i]
-	Next
-	inputArray = copy
+	' Create a replacement array with the last element missing.
+	inputArray = inputArray[..inputArray.Length - 1]
 
 	Return element
 
@@ -87,38 +80,27 @@ End Function
 ''' <param name="arr2">The second array to merge.</param>
 ''' <return>An array of containing all elements from both arrays.</return>
 Function array_merge:Object[](arr1:Object[], arr2:Object[])
-
-	' If one array is empty, no need to merge.
-	If arr1.Length = 0 Then Return arr2
-	If arr2.Length = 0 Then Return arr1
-
-	' Create the new array.
-	Local result:Object[arr1.Length + arr2.Length]
-	Local i:Int
-
-	For i = 0 To arr1.Length - 1
-		result[i] = arr1[i]
-	Next
-
-	For i = 0 To arr2.Length - 1
-		result[i + arr1.Length] = arr2[i]
-	Next
-
-	Return result
-
+	Return arr1 + arr2
 End Function
 
 ''' <summary>Add an element to the end of an array.</summary>
 ''' <param name="arr">The array to modify.</param>
 ''' <param name="obj">The element to add.</param>
-''' <return>A new array containing all elements of `arr` with `obj` added to the end.</return>
+''' <return>The original `arr` with `obj` added to the end.</return>
 Function array_append:Object[](arr:Object[], obj:Object)
-	Local result:Object[arr.Length + 1]
-	For Local i:Int = 0 To arr.Length - 1
-		result[i] = arr[i]
-	Next
-	result[arr.Length] = obj
-	Return result
+	' Create array if it didn't exist.
+	If arr = Null Then
+		arr = [obj]
+
+		Return arr
+	EndIf
+
+	' Resize array.
+	arr = arr[..arr.Length + 1]
+	arr[arr.Length - 1] = obj
+
+	' Return result.
+	Return arr
 End Function
 
 ''' <summary>Filter the contents of an array using a callback function.</summary>
@@ -126,21 +108,24 @@ End Function
 ''' <param name="fn">Callback function that should take a single element. If the element can be included in the result, the function should return true.</param>
 ''' <return>A new array containing filtered elements from inputArray</return>
 Function array_filter:Object[](inputArray:Object[], fn:Byte(o:Object))
-	Local l:TList = New TList
+	Local results:Object[]
+
 	For Local obj:Object = EachIn inputArray
-		If fn(obj) = True Then l.AddLast(obj)
+		If fn(obj) = True Then results = array_append(results, obj)
 	Next
-	Return l.ToArray()
+
+	Return results
 End Function
 
 ''' <summary>Check if an array contains a specific value. Will be slow for large arrays.</summary>
 ''' <param name="arr">The array to scan.</param>
 ''' <param name="obj">The object to search for.</param>
 ''' <return>True if obj was found, false if not.</return>
-Function array_contains:Int(arr:Object[], obj:Object)
+Function array_contains:Byte(arr:Object[], obj:Object)
 	For Local arrayObject:Object = EachIn arr
 		If arrayObject = obj Then Return True
 	Next
+
 	Return False
 End Function
 
