@@ -128,6 +128,9 @@ Type CommandLineOptions
 			' Skip fields with no description.
 			If optionMeta.ValueForKey("Description") = Null Then Continue
 
+			' Skip fields that have `NoHelp` set
+			If optionMeta.ValueForKey("NoHelp") <> Null Then Continue
+
 			' Add fields
 '			If useColours Then helpText = helpText + "%Y"
 			helpText = helpText + "  -" + String(optionMeta.ValueForKey("ShortName")) + "  --" + LSet(String(optionMeta.ValueForKey("LongName")), longestName.Length +5)
