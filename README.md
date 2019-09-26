@@ -44,6 +44,10 @@ A collection of general purpose modules for BlitzMax.
 **file_soda**
 : Custom file format that supports nested groups.
 
+**file_util**
+: Utility functions for working with files. Includes fast reading and directory
+  listing.
+
 **file_ziphelper**
 : Helper functions for working with ZIP files.
 
@@ -63,6 +67,11 @@ Install modules by copying them to your BlitzMax modules directory. All
 sodaware.mod modules should live in the blitzmax/mod/sodaware.mod/ directory.
 
 It's highly recommended to install all modules as some are dependent on others.
+
+
+## Module Dependencies
+
+- **file_util** depends on [bah.volumes](http://brucey.net/programming/blitz/#bahvolumes).
 
 
 ## Licence
