@@ -33,8 +33,17 @@ Type ScriptObject
 
 
 	' ------------------------------------------------------------
-	' -- Fetcing Values
+	' -- Fetching Values
 	' ------------------------------------------------------------
+
+	''' <summary>
+	''' Check if value is empty.
+	'''
+	''' Value is empty if it is null, 0 or an empty string.
+	''' </summary>
+	Method isEmpty:Byte()
+		Return (Self._value = Null Or Self._value.ToString() = "") and Self._valueInt = 0
+	End Method
 
 	Method valueBool:Byte()
 		Local val:String = Self.toString().toLower()
