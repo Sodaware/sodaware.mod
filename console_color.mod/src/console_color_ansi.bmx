@@ -98,10 +98,11 @@ Type Console_Color_ANSI
 				
 				End If
 				
-				
-				if nextChar = "%" then
-					output:+output
-				else
+				' Escaped % sign.
+				If nextChar = "%" Then
+					output :+ "%"
+					strpos :+ 1
+				Else
 					' Create output code
 					local ansiCode:String	= chr(27) + "[0;"
 				
