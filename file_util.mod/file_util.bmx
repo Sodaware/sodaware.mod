@@ -30,7 +30,12 @@ Import brl.basic
 Import brl.retro
 Import brl.filesystem
 
-Import BaH.volumes
+?bmxng
+Import brl.volumes
+?Not bmxng
+Import bah.volumes
+?
+
 Import sodaware.file_fnmatch
 
 Import "file_information.bmx"
