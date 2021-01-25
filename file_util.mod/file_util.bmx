@@ -117,7 +117,7 @@ Type File_Util
 	''' directory.
 	'''
 	''' For example, on GNU/Linux this will be something like:
-	''' `~/.companyName/.applicationName/`.
+	''' `~/.companyName/applicationName/`.
 	'''
 	''' Does not create the directory.
 	''' </summary>
@@ -135,7 +135,7 @@ Type File_Util
 		applicationDir	= applicationName
 		?Not Win32
 		companyDir		= "." + companyName
-		applicationDir	= "." + applicationName
+		applicationDir	= applicationName
 		?
 
 		Return File_Util.PathCombine(GetUserAppDir(), File_Util.PathCombine(companyDir, applicationDir))
