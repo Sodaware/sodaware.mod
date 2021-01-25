@@ -22,9 +22,9 @@
 ' ------------------------------------------------------------------------------
 
 
-Module sodaware.blitzmax_injection
-
 SuperStrict
+
+Module sodaware.blitzmax_injection
 
 Import "src/i_injectable.bmx" 
 Import "src/dependency_injector.bmx" 
