@@ -26,8 +26,8 @@
 ' ------------------------------------------------------------------------------
 
 
-Module sodaware.file_ziphelper
-
 SuperStrict
+
+Module sodaware.file_ziphelper
 
 Import "src/zip_helper.bmx"

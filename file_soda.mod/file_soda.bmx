@@ -23,8 +23,8 @@
 ' ------------------------------------------------------------------------------
 
 
-Module sodaware.file_soda
-
 SuperStrict
+
+Module sodaware.file_soda
 
 Import "src/soda_file.bmx"
