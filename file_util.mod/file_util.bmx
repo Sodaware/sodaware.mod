@@ -37,10 +37,7 @@ Import "file_information.bmx"
 
 Type File_Util
 
-	' TODO: Remove these
-	?Win32			Const SEPARATOR:String	= "/"
-	?Not Win32		Const SEPARATOR:String	= "/"
-	?
+	Const SEPARATOR:String = "/"
 
 	''' <summary>
 	''' Read the entire contents of a stream and return it as a string.
@@ -55,7 +52,13 @@ Type File_Util
 		' Ensure bank finishes with a 0 byte.
 		' This prevents the string from having junk bytes at the end.
 		Local size:Int = BankSize(bank)
+
+		?bmxng
+		ResizeBank(bank, size_t(size + 1))
+		?Not bmxng
 		ResizeBank(bank, size + 1)
+		?
+
 		PokeByte(bank, size, 0)
 
 		' Get bank contents and convert to a string
