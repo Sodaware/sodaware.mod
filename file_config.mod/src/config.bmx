@@ -102,7 +102,7 @@ Type Config
 	Method getSectionKeys:TList(sectionName:String)
 		
 		' Check section exists
-		If Self._sections.ValueForKey(sectionName) = Null Then Return Null
+		If Not Self.hasSection(sectionName) Then Return Null
 	
 		Local section:TMap      = TMap(Self._sections.ValueForKey(sectionName))
 		Local sectionKeys:TList = New TList
@@ -114,6 +114,10 @@ Type Config
 		' TODO: Convert this to a StringList
 		Return sectionKeys
 		
+	End Method
+
+	Method hasSection:Byte(sectionName:String)
+		Return Self._sections.ValueForKey(sectionName) <> Null
 	End Method
 	
 	
