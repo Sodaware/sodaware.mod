@@ -188,7 +188,7 @@ Type ExpressionEvaluator
 
 			' Evaluate the rest of the expression.
 			Self._tokeniser.getNextToken()
-			Local rightSide:ScriptObject = self.parseBooleanAnd()
+			Local rightSide:ScriptObject = Self.parseBooleanAnd()
 
 			If Self._evalMode <> MODE_PARSE_ONLY Then
 				leftSide = Self._bool(leftSide.valueBool() Or rightSide.valueBool())

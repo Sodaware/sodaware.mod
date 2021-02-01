@@ -58,7 +58,9 @@ Type ScriptObject
 	End Method
 
 	Method valueFloat:Float()
-		Return Float(Self._value.ToString())
+		If Self._value = Null Then Return Float(Self._valueInt)
+
+		Return Float(String(Self._value))
 	End Method
 
 	Method valueString:String()
@@ -126,7 +128,7 @@ Type ScriptObject
 		End If
 
 		' Adding mixed floats.
-		If o1._type = OBJECT_FLOAT Or o1._type = OBJECT_FLOAT Then
+		If o1._type = OBJECT_FLOAT Or o2._type = OBJECT_FLOAT Then
 			Return ScriptObjectFactory.NewFloat(Float(o1._value.ToString()) + Float(o2._value.ToString()))
 		End If
 
@@ -152,7 +154,7 @@ Type ScriptObject
 		End If
 
 		' Subtracting mixed. Slow.
-		If o1._type = OBJECT_FLOAT Or o1._type = OBJECT_FLOAT Then
+		If o1._type = OBJECT_FLOAT Or o2._type = OBJECT_FLOAT Then
 			Return ScriptObjectFactory.NewFloat(Float(o1.ToString()) - Float(o2.ToString()))
 		End If
 
@@ -166,13 +168,13 @@ Type ScriptObject
 			Return ScriptObjectFactory.newint(o1.valueInt() * o2.valueInt())
 		End If
 
-		' Subtracting floats
+		' Multiplying floats
 		If o1._type = OBJECT_FLOAT And o1._type = OBJECT_FLOAT Then
 			Return ScriptObjectFactory.NewFloat(o1.valueFloat() * o2.valueFloat())
 		End If
 
 		' Subtracting mixed
-		If o1._type = OBJECT_FLOAT Or o1._type = OBJECT_FLOAT Then
+		If o1._type = OBJECT_FLOAT Or o2._type = OBJECT_FLOAT Then
 			Return ScriptObjectFactory.NewFloat(Float(o1.ToString()) * Float(o2.ToString()))
 		End If
 
@@ -192,7 +194,7 @@ Type ScriptObject
 		End If
 
 		' Subtracting mixed
-		If o1._type = OBJECT_FLOAT Or o1._type = OBJECT_FLOAT Then
+		If o1._type = OBJECT_FLOAT Or o2._type = OBJECT_FLOAT Then
 			Return ScriptObjectFactory.NewFloat(Float(o1._value.ToString()) / Float(o2._value.ToString()))
 		End If
 
@@ -236,7 +238,12 @@ Type ScriptObject
 	End Function
 
 	Function CanMultiply:Int(o1:ScriptObject, o2:ScriptObject)
+		If o1._type <> OBJECT_INT And o1._type <> OBJECT_FLOAT Then Return False
+		If o2._type <> OBJECT_INT And o2._type <> OBJECT_FLOAT Then Return False
 
+		Return True
+		
+		
 		If (o1._type = o2._type) And (o1._type = OBJECT_INT Or o1._type = OBJECT_FLOAT) Then Return True
 		Return False
 

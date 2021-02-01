@@ -35,29 +35,37 @@ Type ScriptObjectFactory
 
 	Function NewBool:ScriptObject(val:Int)
 		Local this:ScriptObject = New ScriptObject
+
 		this._type = ScriptObject.OBJECT_BOOL
 		this._value = String(val)
+
 		Return this
 	End Function
 
 	Function NewInt:ScriptObject(val:Int)
 		Local this:ScriptObject = New ScriptObject
+
 		this._type = ScriptObject.OBJECT_INT
 		this._valueInt = val
+
 		Return this
 	End Function
 
 	Function NewFloat:ScriptObject(val:Float)
 		Local this:ScriptObject = New ScriptObject
+
 		this._type = ScriptObject.OBJECT_FLOAT
 		this._value = String(val)
+
 		Return this
 	End Function
 
 	Function NewString:ScriptObject(val:String)
 		Local this:ScriptObject = New ScriptObject
+
 		this._type = ScriptObject.OBJECT_STRING
 		this._value = String(val)
+
 		Return this
 	End Function
 
