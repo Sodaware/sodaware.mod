@@ -8,3 +8,6 @@
 *.x64.i
 *.s
 *.o
+*.arm.a
+*.arm.i
+*.arm.i2
