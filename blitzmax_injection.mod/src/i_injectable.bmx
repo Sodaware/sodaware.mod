@@ -65,8 +65,9 @@ Type IInjectable
 		' Get the field to inject into
 		Local injectableField:TField = TField(Self._iinjectable_dependencyMap.ValueForKey(objectType))
 		
-		' Do nothing if field doesn't exist
+		' Do nothing if field doesn't exist or is already set.
 		If injectableField = Null Then Return
+		If injectableField.get(Self) <> Null Then Return
 		
 		' Inject
 		injectableField.Set(Self, obj)
