@@ -145,6 +145,17 @@ Type CommandLineOptions
 
 	End Method
 
+	Method wrapHelpText:String(longName:String, description:String, columnWidth:Int = 80)
+		Local longestName:String = Self._findLongestName()
+		Local wrapWidth:Int		 = 12 + longestName.Length
+		Local line:String
+
+		line = "      " + LSet(String(longName), longestName.Length +5)
+		line :+ CommandLineHelpers.WrapText(description, wrapWidth, columnWidth)
+
+		Return line
+	End Method
+
 
 	' ------------------------------------------------------------
 	' -- Access Methods
