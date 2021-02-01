@@ -22,12 +22,12 @@
 ' ------------------------------------------------------------------------------
 
 
+SuperStrict
+
 Module sodaware.File_Config
 
 ModuleInfo "Version: 0.2.0"
 ModuleInfo "Author: Phil Newton"
-
-SuperStrict
 
 Import brl.map
 import brl.linkedlist

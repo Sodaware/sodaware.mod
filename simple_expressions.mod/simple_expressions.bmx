@@ -29,8 +29,8 @@
 ' ------------------------------------------------------------------------------
 
 
-Module sodaware.simple_expressions
-
 SuperStrict
+
+Module sodaware.simple_expressions
 
 Import "src/expression_evaluator.bmx"
