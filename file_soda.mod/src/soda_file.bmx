@@ -88,8 +88,11 @@ Type SodaFile
 	''' <summary>Get the string value of a query.</summary>
 	''' <param name="qry">The query to execute.</param>
 	''' <returns>Query result as a string value.</returns>
-	Method queryString:String(qry:String)
-		Return String(Self.query(qry))
+	Method queryString:String(qry:String, defaultValue:String = "")
+		Local value:Object = Self.query(qry)
+		If value = Null Then Return defaultValue
+
+		Return String(value)
 	End Method
 	
 	
