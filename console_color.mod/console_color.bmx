@@ -25,12 +25,12 @@
 ' ------------------------------------------------------------------------------
 
 
+SuperStrict
+
 Module sodaware.Console_Color
 
 ModuleInfo "Version: 0.1.0"
 ModuleInfo "Author: Phil Newton"
-
-SuperStrict
 
 Rem
 
@@ -92,6 +92,8 @@ End Function
 
 ''' <summary>Write a string to the console that contains colourized information.</summary>
 ''' <param name="str">The string to display.</param>
+''' <seealso cref="#colour-codes">List of colour codes</seealso>
+''' <seealso cref="#style-codes">List of style codes</seealso>
 Function WriteC(str:String = "")
 	
 ?Win32
