@@ -33,6 +33,30 @@ Type StringTable
 ?
 
 	' ------------------------------------------------------------
+	' -- Creation
+	' ------------------------------------------------------------
+
+	Function Create:StringTable(keys:String[], values:String[] = Null)
+		Local this:StringTable = New StringTable
+
+		If keys.length > 0 And keys.length = values.length Then
+			For Local i:Int = 0 To keys.length - 1
+				this.set(keys[i], values[i])
+			Next
+		EndIf
+
+		' Alternative syntax.
+		If keys.length > 0 And values = Null Then
+			For Local i:Int = 0 To keys.length - 1 Step 2
+				this.set(keys[i], keys[i + 1])
+			Next
+		EndIf
+
+		Return this
+	End Function
+
+
+	' ------------------------------------------------------------
 	' -- Getting and Setting
 	' ------------------------------------------------------------
 
