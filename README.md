@@ -1,6 +1,21 @@
 # sodaware.mod
 
+![LGPLv3](https://img.shields.io/github/license/Sodaware/sodaware.mod.svg)
+![GitHub release](https://img.shields.io/github/release/Sodaware/sodaware.mod.svg)
+
 A collection of general purpose modules for BlitzMax.
+
+
+## Quick Links
+
+Project Homepage:
+: https://www.sodaware.net/sodaware.mod/
+
+Source Code
+: https://github.com/sodaware/sodaware.mod/
+
+Full Documentation
+: https://docs.sodaware.net/sodaware.mod/latest/
 
 
 ## Module List
