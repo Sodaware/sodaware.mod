@@ -62,16 +62,16 @@ Module sodaware.blitzmax_ascii
 ' -- Non-Visible formatting characters
 ' --------------------------------------------------
 
-Const ASC_NULL			= 0		''' Null character
-Const ASC_SOH			= 1		''' Start of Heading
-Const ASC_STX			= 2		''' Start of Text
-Const ASC_ETX			= 3		''' End of Text
-Const ASC_EOT			= 4		''' End of Transmission
-Const ASC_ENQ			= 5		''' Enquiry
-Const ASC_ACK			= 6		''' Acknowledge
-Const ASC_BEL			= 7		''' Bell
-Const ASC_BS			= 8		''' Backspace
-Const ASC_TAB			= 9		''' Tab
+Const ASC_NULL:Byte     = 0     ''' Null character
+Const ASC_SOH:Byte      = 1     ''' Start of Heading
+Const ASC_STX:Byte      = 2     ''' Start of Text
+Const ASC_ETX:Byte      = 3     ''' End of Text
+Const ASC_EOT:Byte      = 4     ''' End of Transmission
+Const ASC_ENQ:Byte      = 5     ''' Enquiry
+Const ASC_ACK:Byte      = 6     ''' Acknowledge
+Const ASC_BEL:Byte      = 7     ''' Bell
+Const ASC_BS:Byte       = 8     ''' Backspace
+Const ASC_TAB:Byte      = 9     ''' Tab
 Const ASC_LF			= 10	''' Line Feed
 Const ASC_VT			= 11	''' Vertical Tab
 Const ASC_FF			= 12	''' Form Feed
@@ -94,16 +94,17 @@ Const ASC_FS			= 28	''' File Separator
 Const ASC_GS			= 29	''' Group Separator
 Const ASC_RS			= 30	''' Record Separator
 Const ASC_US			= 31	''' Unit Separator
+Const ASC_SPACE			= 32    ''' Space
 
 ' --------------------------------------------------
-' -- Common Puncuation
+' -- Common Punctuation
 ' --------------------------------------------------
 
-Const ASC_SPACE			= 32
 Const ASC_EXCLAMATION	= 33
 Const ASC_QUOTE			= 34
-Const ASC_HASH			= 35 ; Const ASC_POUND = 35
-Const ASC_DOLLAR		= 36
+Const ASC_HASH			= 35
+Const ASC_POUND         = 35
+Const ASC_DOLLAR        = 36
 Const ASC_PERCENT		= 37
 Const ASC_AMPERSAND		= 38
 Const ASC_APOSTROPHE	= 39
