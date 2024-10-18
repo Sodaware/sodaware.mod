@@ -21,17 +21,14 @@
 ' -- details); If not, see <http://www.gnu.org/licenses/>.
 ' ------------------------------------------------------------------------------
 
+SuperStrict
 
 Module sodaware.File_Config_SodaSerializer
-
 ModuleInfo "Version: 0.1.0"
 ModuleInfo "Author: Phil Newton"
 
-SuperStrict
-
 Import sodaware.file_config
 Import sodaware.file_soda
-
 
 Type SodaConfigSerializer Extends File_ConfigSerializer
 	
