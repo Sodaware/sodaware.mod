@@ -285,6 +285,7 @@ Type ExpressionTokeniser
 	Method _readString:String()
 		Local s:String      = ""
 		Local charCode:Byte = Self._peekChar()
+		Local readChar:Byte
 
 		While charCode <> 0
 			If charCode = ASC_APOSTROPHE Then
@@ -292,7 +293,11 @@ Type ExpressionTokeniser
 				Self._readChar()
 				Exit
 			Else
-				s :+ CHAR_LOOKUP[Self._readChar()]
+				' Don't try and shorten this to:
+				' `s :+ CHAR_LOOKUP[Self._readChar()]`
+				' It will not work on bmx-ng.
+				readChar = Self._readChar()
+				s :+ CHAR_LOOKUP[readChar]
 			EndIf
 
 			charCode = Self._peekChar()
@@ -301,7 +306,6 @@ Type ExpressionTokeniser
 		Self._setCurrentToken(TOKEN_STRING, s)
 
 		Return s
-
 	End Method
 
 	''' <summary>Read the current character and move to the next position.</summary>
