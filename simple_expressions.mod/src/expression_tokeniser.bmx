@@ -53,12 +53,12 @@ Type ExpressionTokeniser
 	Const TOKEN_DOUBLE_COLON:Byte       = 28
 
 	' -- Current token info.
-	Field currentToken:Byte             '''< Const TokenType for current token
-	Field tokenText:String              '''< Text of the current token
-	Field currentPosition:Int           '''< Current position within the expression
+	Field currentToken:Byte             '''< Const TokenType for current token.
+	Field tokenText:String              '''< Text of the current token.
+	Field currentPosition:Int           '''< Current position within the expression.
 
 	' -- Internal fields.
-	Field _expressionText:String        '''< The full text of the expression
+	Field _expressionText:String        '''< The full text of the expression.
 
 
 	' ------------------------------------------------------------

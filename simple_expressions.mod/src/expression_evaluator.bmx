@@ -1,14 +1,14 @@
 ' ------------------------------------------------------------------------------
 ' -- src/expression_evaluate.bmx
 ' --
-' -- Used to evaluate expressions within properties. Anthing inside a ${} block
-' -- is parsed and the approprate code called.
+' -- Type that evaluates simple expressions (such as `1 + 1`) and returns the
+' -- result.
 ' --
 ' -- This is a port of code used by the original BlitzBuild so it's rather
 ' -- unpleasant in places.
 ' --
 ' -- This file is part of sodaware.mod (https://www.sodaware.net/sodaware.mod/)
-' -- Copyright (c) 2009-2018 Phil Newton
+' -- Copyright (c) 2009-2025 Phil Newton
 ' --
 ' -- See LICENSE for full license information.
 ' ------------------------------------------------------------------------------
@@ -24,6 +24,16 @@ Import "script_object.bmx"
 Import "function_set.bmx"
 Import "script_function.bmx"
 
+''' <summary>
+''' Evaluates simple expressions (such as `1 + 1`) and returns the result.
+'''
+''' It also supports interpolating expressions within a string using `${}`
+''' syntax. For example, interpolating "one plus one = ${ 1 + 1 }" will return
+''' the string "one plus one = 2".
+'''
+''' Can be configured with custom functions, as well as global properties to act
+''' as simple variables.
+''' </summary>
 Type ExpressionEvaluator
 
 	Const MODE_EVALUATE:Byte   = 1
@@ -40,7 +50,7 @@ Type ExpressionEvaluator
 
 
 	' ------------------------------------------------------------
-	' -- Public API
+	' -- Managing Custom Functions
 	' ------------------------------------------------------------
 
 	''' <summary>
@@ -76,6 +86,10 @@ Type ExpressionEvaluator
 		Self._registeredFunctions.Insert(func.getFullName(), func)
 	End Method
 
+	' ------------------------------------------------------------
+	' -- Managing Custom Properties
+	' ------------------------------------------------------------
+
 	Method registerStringProperty(name:String, value:String)
 		Self._properties.Insert(name, ScriptObjectFactory.NewString(value))
 	End Method
@@ -88,9 +102,15 @@ Type ExpressionEvaluator
 		Self._properties.Insert(name, ScriptObjectFactory.NewInt(value))
 	End Method
 
-	' Merge a list of properties
+	''' <summary>
+	''' Add multiple string properties.
+	'''
+	''' If a property with the same name already exists, it will be overwritten.
+	''' </summary>
+	''' <param name="propertyList">Map of propertyName => value.</param>
 	Method addProperties(propertyList:Tmap)
 		If propertyList = Null Then Return
+
 		For Local keyName:String = EachIn propertyList.Keys()
 			Self.registerStringProperty(keyName, String(propertyList.valueForKey(keyName)))
 		Next
@@ -98,26 +118,13 @@ Type ExpressionEvaluator
 
 
 	' ------------------------------------------------------------
-	' -- MAIN ENTRY
+	' -- Evaluation
 	' ------------------------------------------------------------
 
-	' Run an expression on a New expression evaluator instance.
-	' Probably don't want to do this as it doesn't have functions and watnot setup.
-	Function quickEvaluate:ScriptObject(expression:String)
-		If expression = Null Then Return Null
-
-		' Create a new evaluator.
-		Local eval:ExpressionEvaluator = New ExpressionEvaluator
-
-		' Evaluate the expression and return the result.
-		Local result:ScriptObject = eval.evaluate(expression)
-		eval = Null
-		Return result
-
-	End Function
-
+	''' <summary>Run an expression and return the result.</summary>
+	''' <param name="expression">The expression to evaluate.</param>
+	''' <return> The evaluated result.</return>
 	Method evaluate:ScriptObject(expression:String = "")
-
 		' Set the expression.
 		Self._setExpression(expression)
 
@@ -130,15 +137,37 @@ Type ExpressionEvaluator
 		EndIf
 
 		Return result
-
 	End Method
 
 	''' <summary>
-	''' Parse a string property and return its value. Will evaluate any
-	''' expressions and functions within the property.
+	''' Run an expression on a temporary expression evaluator instance.
+	'''
+	''' You probably don't want to do this unless all you require is something
+	''' very simple - it doesn't support custom functions or variables.
 	''' </summary>
-	''' <param name="value">The value to parse</param>
-	''' <return>The parsed value.</return>
+	''' <param name="expression">The expression to evaluate.</param>
+	''' <return> The evaluated result.</return>
+	Function quickEvaluate:ScriptObject(expression:String)
+		If expression = Null Then Return Null
+
+		' Create a new evaluator.
+		Local eval:ExpressionEvaluator = New ExpressionEvaluator
+
+		' Evaluate the expression and return the result.
+		Local result:ScriptObject = eval.evaluate(expression)
+		eval = Null
+
+		Return result
+	End Function
+
+	''' <summary>
+	''' Parse a string and replace any expressiosn with their result.
+	'''
+	''' Looks for expressions within `${ }` brackets, evaluates them, and replaces
+	''' the contents of the brackets with the result.
+	''' </summary>
+	''' <param name="value">The text to interpolate</param>
+	''' <return>The interpolated text.</return>
 	Method interpolate:String(value:String)
 
 		Local interpolatedValue:String = value
@@ -560,14 +589,14 @@ Type ExpressionEvaluator
 
 			currentArgument = currentArgument + 1
 
-			' Check if we're at the end
+			' Check if we're at the end.
 			If Self._tokeniser.currentToken = ExpressionTokeniser.TOKEN_RIGHT_PAREN Then
 				Exit
 			EndIf
 
 			' Check if there was no comma (syntax error)
 			If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_COMMA Then
-				RuntimeError("',' expected at " + Self._tokeniser.currentPosition + " -- found " + Self._tokeniser.currentToken)
+				RuntimeError("',' expected at " + Self._tokeniser.currentPosition + " -- found " + Chr(Self._tokeniser.currentToken))
 			EndIf
 
 			Self._tokeniser.getNextToken()
@@ -581,7 +610,7 @@ Type ExpressionEvaluator
 
 		' No close bracket found.
 		If Self._tokeniser.currentToken <> ExpressionTokeniser.TOKEN_RIGHT_PAREN Then
-			RuntimeError("')' expected at " + self._tokeniser.currentPosition)
+			RuntimeError("')' expected at " + self._tokeniser.currentPosition + " -- found " + Chr(Self._tokeniser.currentToken))
 		EndIf
 
 		Self._tokeniser.getNextToken()
