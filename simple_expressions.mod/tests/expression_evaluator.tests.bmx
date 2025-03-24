@@ -28,7 +28,7 @@ Type BlitzBuild_Expressions_ExpressionEvaluatorTests Extends TTest
 
 		Try
 			ExpressionEvaluator.QuickEvaluate("(10 + 4) / ")
-			Self.assertNotNull(Null, "Test failed to throw exception")
+			Self.fail("Test failed to throw exception")
 		Catch e:Object
 			Self.assertEquals("Syntax error in expression: + ~q" + "(10 + 4) / " + "~q", e.ToString(), "Must throw exception if expression is invalid")
 		End Try
